@@ -1,0 +1,72 @@
+# Compiled object files
+*.o
+*.so
+*.ko
+*.obj
+*.elf
+*.d
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Dynamic libraries
+*.dll
+*.dylib
+
+# Static libraries
+*.lib
+*.a
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# Build directories
+bin/
+build/
+obj/
+lib/
+
+# Dependency directories (uncomment if applicable)
+# deps/
+
+# Output files
+*.txt
+output/
+
+# Backup & temporary files
+*~
+*.bak
+*.tmp
+*.swp
+
+# IDE-specific files and directories
+# Visual Studio Code
+.vscode/
+# Eclipse
+.settings/
+.project
+.classpath
+# JetBrains IDEs (e.g., CLion, IntelliJ)
+.idea/
+*.iml
+
+# Operating system generated files
+.DS_Store
+Thumbs.db
+
+# Custom directories or files
+# Add any other directories or file patterns specific to your project
+# logs/
+# temp/
+# secrets/
+
+# Ignore specific configuration files (uncomment if applicable)
+# .env
+# config.json
+
+# Ignore specific large files or archives (uncomment if applicable)
+# *.tar.gz
+# *.zip
