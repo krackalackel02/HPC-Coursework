@@ -28,18 +28,19 @@
 
 
 <!-- PROJECT LOGO -->
+[![][logo]](https://github.com/krackalackel02/HPC-Coursework)
 <br />
 <div align="center">
-  <a href="https://github.com/krackalackel02/HPC-Coursework">
-    <img src="./images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+  <!-- <a href="https://github.com/krackalackel02/HPC-Coursework">
+    <img src="./images/logo.png" alt="Logo" width="150" height="150">
+  </a> -->
 
   <h3 align="center">HPC-Coursework</h3>
 
   <p align="center">
     High Performance Computing with OpenMP and CBLAS
     <br />
-    <a href="https://github.com/krackalackel02/HPC-Coursework"><strong>Explore the docs »</strong></a>
+    <a href="https://krackalackel02.github.io/HPC-Coursework/index.html"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/krackalackel02/HPC-Coursework">View Demo</a>
@@ -70,6 +71,7 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#report">Report</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <!-- <li><a href="#license">License</a></li> -->
@@ -83,7 +85,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://github.com/krackalackel02/HPC-Coursework)
+[![][product-screenshot]](https://github.com/krackalackel02/HPC-Coursework)
 
 This repository details the HPC coursework that involves the optimisation of a fluid solver in conjunction with the OpenMP and CBlas library.
 
@@ -162,6 +164,58 @@ _Below is an example of how to install the repository_
 
 <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources. -->
 
+
+### Makefile
+#### Build Source Files
+***You can list all the files that will be buit into individual executables***
+
+***1. choose file as main that will be built into "solver.out"***
+
+***2. list any other separate binaries that will utilise the other headers in "PHONY_BINARY". E.G. ./code/src/main2.cpp***
+
+***3. list any other separate tests that will utilise the other headers in "PHONY_TEST". E.G. ./code/test/test1.cpp***
+
+_Makefile Snippet_
+  ```
+  MAIN = LidDrivenCavitySolver
+  PHONY_BINARY = $(MAIN) main2
+  PHONY_TEST = test1
+  ```
+#### Development
+***The development process should involve publishing and then comitting and pushing to main and then ghpages***
+
+***1. make***
+
+***2. make commit MESG="this is a test message"***
+
+***3. make push***
+
+***4. make publish-docs***
+
+_Makefile Snippet_
+  ```
+  docs:
+    cd ./docs && doxygen
+  docs-open: docs
+    xdg-open ./docs/html/index.html
+
+  git-commit:
+  ifndef MSG
+    $(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
+  else
+    git add .
+    git commit -m "${MSG}"
+  endif
+  git-push:
+    git push origin main
+  git-publish-docs:
+    git subtree push --prefix docs/html origin gh-pages
+  git-log:
+    git log --name-status > repository.log
+    make git-commit MSG="Updated Log"
+    make git-push
+  ```
+### Solver Executable
 _For more instructions, please refer to the [Documentation](https://example.com)_
 
 1. Call make clean to empty any old build files
@@ -174,7 +228,7 @@ _For more instructions, please refer to the [Documentation](https://example.com)
    ```
 3. Run main and unit test executable
    ```sh
-   ./bin/LidDrivenCavitySolver 
+   ./bin/solver
    ```
 4. View output files and resulting ".txt" documents
    ```sh
@@ -184,19 +238,66 @@ _For more instructions, please refer to the [Documentation](https://example.com)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- REPORT -->
+## Report
+The final report for this coursework is located in the "./report/" folder. Furthermore it can be build using latex, if the correct packages and xelatex is installed.
 
+_You can view the document below:_
+[![][report badge]][report url]
+[Click here to view the PDF][report url]
+
+<!-- [View PDF](./report/Report.pdf) -->
+<!-- <div>
+  <iframe src="https://github.com/krackalackel02/HPC-Coursework/blob/main/report/Report.pdf" width="700" height="300"></iframe>
+</div> -->
 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Iniitalise Git Repo
-- [x] Setup project structure with makefile
+- [x] Setup project structure 
 - [x] Initialise .gitignore file
 - [x] Initialise Markdown
-- [ ] Start looking into Optimisation
-<!-- - [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish -->
+- [ ] Assignment Tasks
+    - [x]  Task 1.
+        - [x]  Setup Git repo
+        - [x]  Setup git log file to report previous commits
+    - [x]  Task 2.
+        - [x]  Implement Makefile
+          - [x]  Main executable should be called "solver"
+    - [x]  Task 3.
+        - [x]  Add Doxyfile
+        - [x]  Document all of source code
+        - [x]  Compile with "doc" Makefile target
+    - [ ]  Task 4.
+        - [ ]  Write Unit Tests
+          - [ ]  At least one test for Linear CG Solver Class
+          - [ ]  At least one test for lid-driven cavity class
+        - [ ]  Add relevent documentation within test files
+        - [ ]  **Report:** Provide brief description 
+        - [x]  Compile with "unittests" Makefile target
+    - [ ]  Task 5.
+        - [ ]  Implement MPI
+          - [ ]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
+          - [ ]  Other choices of P may be considered erroneous and your code should terminate.
+          - [ ]  Parallelisation should be achieved using domain decomposition with each dimension of the domain partitioned p ways.
+          - [ ]  **Report:** Provide a scaling plot showing the speedup of the code when run in parallel, relative to the case in serial, up to P = 16 ranks. 
+          - [ ]  **Report:** Concisely summarise your approach to parallelising the code with MPI and the changes you needed to make to convert the code to run in parallel.
+          - [ ]  **Report:** How did you try to ensure the work done by each process was as balanced as possible?
+          - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
+    - [ ]  Task 6.
+        - [ ]  Implement OpenMP
+          - [ ]  Add multi-threading to the code using OpenMP
+          - [ ]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
+          - [ ]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
+          - [ ]  **Report:** Concisely summarise your approach to parallelising the code with OpenMP.
+          - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why?
+    - [ ]  Task 7.
+        - [ ]  Optimise your code using a profiler.
+          - [ ]  Use one MPI process and one OpenMP thread for this part.
+          - [ ]  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
+          - [ ]  **Report:** List optimisations you have made to the code to improve performance, and quantify the change observed.
+    - [ ]  Task 8.
+        - [ ]  Use good coding practices (code layout, comments, etc) throughout your code.
 
 See the [open issues](https://github.com/krackalackel02/HPC-Coursework/issues) for a full list of proposed features (and known issues).
 
@@ -264,15 +365,18 @@ Use this space to list resources you find helpful and would like to give credit 
 [issues-shield]: https://img.shields.io/github/issues/krackalackel02/HPC-Coursework.svg?style=for-the-badge
 [issues-url]: https://github.com/krackalackel02/HPC-Coursework/issues
 [product-screenshot]: ./images/screenshot.png
+[logo]: ./images/logo_big.png
 
 
+[report badge]: ./images/report.png
+[report url]: https://github.com/krackalackel02/HPC-Coursework/blob/main/report/Report.pdf
 [cpp badge]: https://img.shields.io/badge/C%2B%2B-white?style=for-the-badge&logo=cplusplus&color=%23084a86&link=https%3A%2F%2Fen.cppreference.com%2Fw%2F
 [cpp url]: http://cppreference.com/
 [makefile url]: https://www.gnu.org/software/make/
-[makefile badge]: https://img.shields.io/badge/Makefile-white?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABJCAMAAABCWCvTAAACB1BMVEVHcEwFBQUNDQ0FBQUDAwMCAgIGBgYICAgMDAyenp4HBwcHBwcDAwOoqKgKCgoDAwMICAgDAwMHBweSkpIGBgY8PDwGBgYICAgpKSkICAgLCwsHBwcDAwMFBQWEhIQICAgHBwcFBQUJCQkPDw+amppSUlKLi4tPT08hISEDAwOYmJh5eXkZGRkpKSkmJiZKSko8PDwxMTEWFhZcXFxnZ2dFRUUjIyMiIiJLS0s6OjoEBAQDAwMICAgNDQ0EBAQ6OjpFRUVpaWkDAwMpKSlaWlpRUVECAgIqKipzc3N5eXkuLi5ubm5XV1c9PT0dHR0ZGRk4ODiSkpItLS0cHBw4ODhnZ2d/f39BQUFcXFxfX19ra2sYGBhRUVE0NDSIiIg+Pj4zMzMDAAL///8DAwMAAAACAgL9/f35+fn6+vrz8/MHBwesrKwFBQXn5+fs7Ozh4eENDQ3V1dXp6enk5OT19fW5ubnJycmKiorS0tL+/v5iYmLc3Nzv7++lpaXx8fHPz8/8/Pza2to4ODi1tbUvLy8ZGRmioqL39/eysrLe3t4REREoKCjX19dra2tnZ2cjIyNLS0vDw8O8vLxCQkIeHh55eXlzc3N9fX2vr6+VlZXLy8teXl40NDSNjY1vb2/BwcGAgICHh4eDg4NYWFi/v79bW1tUVFQUFBTGxsZQUFB2dnZGRkaFhYW0cH3+AAAApnRSTlMASAgYEBNiAgX+Cy0y/kMhPyZO/jj+kh2jhHeeyNLzaXzeVV39xe/Yguj98Y7ij6980Zzi6L2tbue9sPVxjKiLzNy4xtahv2L52rfy7tHjzuvv9ran8eSlxPfD8PeZ1Ozz///////////////////////////////////////////////////////////////////////////////////////////+5AAZEwAACllJREFUWMOMVwlXGksWbkRBVFBBonlJ1DFuR42auGQ5k0kySV72l8nL8pKZ92bmFA02YDfNjsgO0qBssggCosEFXH7kVLO2Rp9T53D6Vlf1V7e++91bBYLUWnMnp+fdvW/7+/v3bt8RNiJ/1hrbbo5OTo5yOtjnjbawep540zihc+j8ame0976AezHS3a8f9GmT3eD78OQPVsuZ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&color=%23767980&link=https%3A%2F%2Fwww.gnu.org%2Fsoftware%2Fmake%2F
+[makefile badge]: https://img.shields.io/badge/Makefile-white?style=for-the-badge&logo=data:image/png;base64,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&color=777777
 
 [doxygen url]: https://www.doxygen.nl/
-[doxygen badge]: https://img.shields.io/badge/Doxygen-white?style=for-the-badge&logo=data:image/jpeg;base64,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&color=8face7
+[doxygen badge]: https://img.shields.io/badge/Doxygen-white?style=for-the-badge&logo=data:image/jpeg;base64,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&color=8face7
 
 [cblas url]: https://www.netlib.org/blas/
 [cblas badge]: https://img.shields.io/badge/BLAS-white?style=for-the-badge&logo=data:image/png;base64,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&color=090d16

@@ -1,0 +1,229 @@
+commit 41d10d1aece5b8cd046ee0bd24e93da8f8be5b5c
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Wed Feb 28 22:26:04 2024 +0000
+
+    Updated Log
+
+M	repository.log
+
+commit 446926f8da1042e1982634e693b740574ef7b334
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 22:16:34 2024 +0000
+
+    Updated Log
+
+M	repository.log
+
+commit e7e9ebd92dbfc8589eddbe5dcfed68a09ce0ab8c
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 22:16:09 2024 +0000
+
+    Fixed output name to solver and added more info into markdown regarding main files and git scripts
+
+M	Makefile
+M	README.md
+M	code/include/LidDrivenCavity.h
+M	docs/html/LidDrivenCavity_8h_source.html
+M	docs/html/annotated.html
+M	docs/html/classLidDrivenCavity.html
+M	docs/html/index.html
+M	repository.log
+
+commit b50781fc66c8863a739fdf66d04e118e8e3ac58e
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 19:43:56 2024 +0000
+
+    Updated Log
+
+M	Makefile
+A	repository.log
+
+commit 42f3898d269b73dceddb760740d309ecccd7e7b5
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 19:22:32 2024 +0000
+
+    fixed link to online docs on readme
+
+M	Makefile
+M	README.md
+
+commit e972fed22a76b045732ec60347df1c33ba646769
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 19:08:38 2024 +0000
+
+    this added commit and gh page publish to repo
+
+M	Makefile
+
+commit 5a1a82173aa9f24dfcd10ca61869b3cd72433ea3
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 19:00:55 2024 +0000
+
+    added subtree command for gh-pages publishing
+
+M	Makefile
+
+commit 6695a08c4211cf9c450b7030c6bc15c66e674654
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 18:17:24 2024 +0000
+
+    added html folder into git repo so online doc viewing is possible
+
+M	.gitignore
+M	README.md
+A	docs/html/LidDrivenCavity_8h_source.html
+A	docs/html/SolverCG_8h_source.html
+A	docs/html/annotated.html
+A	docs/html/bc_s.png
+A	docs/html/bdwn.png
+A	docs/html/classLidDrivenCavity-members.html
+A	docs/html/classLidDrivenCavity.html
+A	docs/html/classSolverCG-members.html
+A	docs/html/classSolverCG.html
+A	docs/html/classes.html
+A	docs/html/closed.png
+A	docs/html/dir_050edd66366d13764f98250ef6db77f6.html
+A	docs/html/dir_14807827589b339a04434892d1c1deae.html
+A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.map
+A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.md5
+A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.png
+A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a.html
+A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.map
+A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.md5
+A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.png
+A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3.html
+A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.map
+A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.md5
+A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.png
+A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c.html
+A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.map
+A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.md5
+A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.png
+A	docs/html/doc.png
+A	docs/html/doxygen.css
+A	docs/html/doxygen.svg
+A	docs/html/dynsections.js
+A	docs/html/files.html
+A	docs/html/folderclosed.png
+A	docs/html/folderopen.png
+A	docs/html/graph_legend.html
+A	docs/html/graph_legend.md5
+A	docs/html/graph_legend.png
+A	docs/html/index.html
+A	docs/html/jquery.js
+A	docs/html/logo.png
+A	docs/html/logo_big.png
+A	docs/html/logo_small.png
+A	docs/html/menu.js
+A	docs/html/menudata.js
+A	docs/html/nav_f.png
+A	docs/html/nav_g.png
+A	docs/html/nav_h.png
+A	docs/html/open.png
+A	docs/html/screenshot.png
+A	docs/html/search/all_0.html
+A	docs/html/search/all_0.js
+A	docs/html/search/all_1.html
+A	docs/html/search/all_1.js
+A	docs/html/search/all_2.html
+A	docs/html/search/all_2.js
+A	docs/html/search/classes_0.html
+A	docs/html/search/classes_0.js
+A	docs/html/search/classes_1.html
+A	docs/html/search/classes_1.js
+A	docs/html/search/close.svg
+A	docs/html/search/mag_sel.svg
+A	docs/html/search/nomatches.html
+A	docs/html/search/pages_0.html
+A	docs/html/search/pages_0.js
+A	docs/html/search/search.css
+A	docs/html/search/search.js
+A	docs/html/search/search_l.png
+A	docs/html/search/search_m.png
+A	docs/html/search/search_r.png
+A	docs/html/search/searchdata.js
+A	docs/html/splitbar.png
+A	docs/html/sync_off.png
+A	docs/html/sync_on.png
+A	docs/html/tab_a.png
+A	docs/html/tab_b.png
+A	docs/html/tab_h.png
+A	docs/html/tab_s.png
+A	docs/html/tabs.css
+
+commit f945e467b2ce45c71f1bd14fe3e4fc0c85793b0e
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 18:14:43 2024 +0000
+
+    fixed doxygen maker with command 'make docs' and fixed image sizing to work on both github and docs
+
+M	.gitignore
+M	Makefile
+M	README.md
+M	docs/Doxyfile
+D	images/logo.png
+A	images/logo_big.png
+A	images/logo_small.png
+
+commit 865437b265d0235a141bc9f0116258ad633bf045
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 16:58:46 2024 +0000
+
+    added build dir to doxyfile and isolated code from build, ouptut and docs dir
+
+M	Makefile
+R100	include/LidDrivenCavity.h	code/include/LidDrivenCavity.h
+R100	include/SolverCG.h	code/include/SolverCG.h
+R100	src/LidDrivenCavity/LidDrivenCavity.cpp	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+R099	src/LidDrivenCavitySolver.cpp	code/src/LidDrivenCavitySolver.cpp
+R100	src/SolverCG/SolverCG.cpp	code/src/SolverCG/SolverCG.cpp
+A	docs/Doxyfile
+M	images/logo.png
+
+commit 98d758becee2dce75d4b428c6822b6b119a4cf6e
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 16:26:07 2024 +0000
+
+    edited logo size for badges on md file to load properly
+
+M	README.md
+
+commit 8f6489ac9a3738fb0b2b4c6a1200c7de20051730
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 16:21:09 2024 +0000
+
+    edited logo size for badges on md file to load properly
+
+M	README.md
+D	images/doxygen.jpeg
+A	images/doxygen.jpg
+M	images/makefile.png
+
+commit 0d7a3e652baabcd596d194af8ad00144b8eca71a
+Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
+Date:   Wed Feb 28 15:56:16 2024 +0000
+
+    setup project with default files from blackboard having adjusted the include statements and output file name for new project structure. also created makefile to build project with clean statements. heavily edited the markdown file for optimum reader experience.
+
+A	.gitignore
+A	Makefile
+M	README.md
+A	images/doxygen.jpeg
+A	images/logo.png
+A	images/makefile.png
+A	images/netlib.png
+A	images/openmp.png
+A	images/screenshot.png
+A	include/LidDrivenCavity.h
+A	include/SolverCG.h
+A	src/LidDrivenCavity/LidDrivenCavity.cpp
+A	src/LidDrivenCavitySolver.cpp
+A	src/SolverCG/SolverCG.cpp
+
+commit bfd3316797f0e5774783ebc90cda44dc0d8f67de
+Author: krackalackel02 <108292404+krackalackel02@users.noreply.github.com>
+Date:   Sat Feb 24 17:45:02 2024 +0000
+
+    Initial commit
+
+A	README.md

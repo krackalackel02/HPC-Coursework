@@ -1,3 +1,13 @@
+/**
+ * @file SolverCG.cpp
+ * @author Paul Kallarackel
+ * @brief This file details the methods used to solve the system of equations in space for the lid-drigven cavity att a given timestep
+ * @version 0.1
+ * @date 2024-02-28
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <iostream>
 #include <algorithm>
 #include <cstring>
@@ -6,11 +16,23 @@ using namespace std;
 #include <cblas.h>
 
 #include "../../include/SolverCG.h"
-
+/**
+ * @brief Used as shorthand for coordinates
+ * 
+ */
 #define IDX(I,J) ((J)*Nx + (I))
 
+/**
+ * @brief Construct a new Solver CG:: Solver CG object. This  instantiates vectors to be used in conjugate gradient algorithm
+ *
+    * @param pNx /// Number of x points
+    * @param pNy /// Number of y points
+    * @param pdx /// X step size
+    * @param pdy /// Y step size
+ */
 SolverCG::SolverCG(int pNx, int pNy, double pdx, double pdy)
 {
+    /// Initialise domain discretisation and state vectors
     dx = pdx;
     dy = pdy;
     Nx = pNx;
@@ -22,24 +44,34 @@ SolverCG::SolverCG(int pNx, int pNy, double pdx, double pdy)
     t = new double[n]; //temp
 }
 
-
+/**
+ * @brief Destroy the Solver CG:: Solver CG object
+ * 
+ */
 SolverCG::~SolverCG()
 {
+    /// free up memory
     delete[] r;
     delete[] p;
     delete[] z;
     delete[] t;
 }
 
-
+/**
+ * @brief Implements conjugate gradient algorithm using cblas
+ * 
+ * @param b /// Vector Result B
+ * @param x /// Vector State X0, initial guess for solution on each time step
+ */
 void SolverCG::Solve(double* b, double* x) {
     unsigned int n = Nx*Ny;
     int k;
     double alpha;
     double beta;
-    double eps;
-    double tol = 0.001;
+    double eps; /// current error
+    double tol = 0.001; /// tolerance of solver
 
+    /// Print out current error, calculated using norm-2
     eps = cblas_dnrm2(n, b, 1);
     if (eps < tol*tol) {
         std::fill(x, x+n, 0.0);
@@ -47,15 +79,18 @@ void SolverCG::Solve(double* b, double* x) {
         return;
     }
 
+    /// Initialise conjugate gradient algorithm with correct states and boundary conditions.
     ApplyOperator(x, t);
     cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
     ImposeBC(r);
 
     cblas_daxpy(n, -1.0, t, 1, r, 1);
+    /// solve for outer walls
     Precondition(r, z);
     cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
 
     k = 0;
+    /// Using conjugate gradient method to solve for new vorticity
     do {
         k++;
         // Perform action of Nabla^2 * p
@@ -90,12 +125,18 @@ void SolverCG::Solve(double* b, double* x) {
     cout << "Converged in " << k << " iterations. eps = " << eps << endl;
 }
 
-
+/**
+ * @brief Implements the operation such that: out = A * in, where A is the -Nabla^2 where A*X = B
+ * 
+ * @param in Vector representing the input X
+ * @param out Vector representing the output B: B = A*X
+ */
 void SolverCG::ApplyOperator(double* in, double* out) {
     // Assume ordered with y-direction fastest (column-by-column)
     double dx2i = 1.0/dx/dx;
     double dy2i = 1.0/dy/dy;
     int jm1 = 0, jp1 = 2;
+    /// Central finite difference scheme to calculate Nabla^2
     for (int j = 1; j < Ny - 1; ++j) {
         for (int i = 1; i < Nx - 1; ++i) {
             out[IDX(i,j)] = ( -     in[IDX(i-1, j)]
@@ -110,7 +151,12 @@ void SolverCG::ApplyOperator(double* in, double* out) {
     }
 }
 
-
+/**
+ * @brief This Implements vorticity calculation for the edge of each "wall". Uses different finite scheme than interior points.
+ * 
+ * @param in Vorticity at the "walls"
+ * @param out Preconditioned Vorticity at the "walls"
+ */
 void SolverCG::Precondition(double* in, double* out) {
     int i, j;
     double dx2i = 1.0/dx/dx;
@@ -132,7 +178,11 @@ void SolverCG::Precondition(double* in, double* out) {
         out[IDX(Nx - 1, j)] = in[IDX(Nx - 1, j)];
     }
 }
-
+/**
+ * @brief Enforces zero initial vorticity boundary condition along each wall
+ * 
+ * @param inout Vorticity state vector
+ */
 void SolverCG::ImposeBC(double* inout) {
         // Boundaries
     for (int i = 0; i < Nx; ++i) {

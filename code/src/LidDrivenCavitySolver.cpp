@@ -1,3 +1,13 @@
+/**
+ * @file LidDrivenCavitySolver.cpp
+ * @author Paul Kallarackel
+ * @brief This is the main solver file which uses methods defined in LidDrivenCavity.h and SolverCG.h
+ * @version 0.1
+ * @date 2024-02-28
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <iostream>
 using namespace std;
 
@@ -8,6 +18,7 @@ namespace po = boost::program_options;
 
 int main(int argc, char **argv)
 {
+    /// Allows custom simulation
     po::options_description opts(
         "Solver for the 2D lid-driven cavity incompressible flow problem");
     opts.add_options()
@@ -37,6 +48,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    /// New solver instance for defined problem above
     LidDrivenCavity* solver = new LidDrivenCavity();
     solver->SetDomainSize(vm["Lx"].as<double>(), vm["Ly"].as<double>());
     solver->SetGridSize(vm["Nx"].as<int>(),vm["Ny"].as<int>());
