@@ -270,7 +270,7 @@ _You can view the document below:_
         - [x]  Compile with "doc" Makefile target
     - [ ]  Task 4.
         - [ ]  Write Unit Tests
-          - [ ]  At least one test for Linear CG Solver Class
+          - [x]  At least one test for Linear CG Solver Class
           - [ ]  At least one test for lid-driven cavity class
         - [ ]  Add relevent documentation within test files
         - [ ]  **Report:** Provide brief description 

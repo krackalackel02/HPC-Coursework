@@ -269,15 +269,15 @@ void LidDrivenCavity::Advance()
     // // Sinusoidal test case with analytical solution, which can be used to test
     // // the Poisson solver
     
-    // const int k = 3;
-    // const int l = 3;
-    // for (int i = 0; i < Nx; ++i) {
-    //     for (int j = 0; j < Ny; ++j) {
-    //         v[IDX(i,j)] = -M_PI * M_PI * (k * k + l * l)
-    //                                    * sin(M_PI * k * i * dx)
-    //                                    * sin(M_PI * l * j * dy);
-    //     }
-    // }
+    /* const int k = 3;
+    const int l = 3;
+    for (int i = 0; i < Nx; ++i) {
+        for (int j = 0; j < Ny; ++j) {
+            v[IDX(i,j)] = -M_PI * M_PI * (k * k + l * l)
+                                       * sin(M_PI * k * i * dx)
+                                       * sin(M_PI * l * j * dy);
+        }
+    } */
     
 
     // Solve Poisson problem
