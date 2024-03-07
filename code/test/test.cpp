@@ -3,6 +3,10 @@
 #include <cmath>
 #include <cblas.h>
 #include <iostream>
+#include <sstream>
+#include <regex>
+#include <vector>
+
 #define IDX(I, J) ((J) * Nx + (I))
 
 #define BOOST_TEST_MODULE Solver_and_Cavity_Test_Suite
@@ -23,7 +27,7 @@ bool compareSolution(const double *numerical, const double *analytical, int size
     return e < tol;
 }
 
-BOOST_AUTO_TEST_CASE(SolverCGAnalayticalTest)
+BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
 {
     int Nx = 2e3; // Example grid size
     int Ny = 2e3; // Example grid size
@@ -64,7 +68,7 @@ BOOST_AUTO_TEST_CASE(SolverCGAnalayticalTest)
     delete[] v;
 }
 
-BOOST_AUTO_TEST_CASE(SolverCGZeroTest){
+BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_ZeroTest){
     /// Zero input solution
     cout << "\nSolverCG Zero Test:" << endl;
     int Nx = 1e2; // Example grid size
@@ -84,4 +88,66 @@ BOOST_AUTO_TEST_CASE(SolverCGZeroTest){
     delete[] smallSolution;
     delete[] smallAnalytical;
     delete[] smallV;
+}
+
+BOOST_AUTO_TEST_CASE(LidDrivenCavityTest) {
+    // Original settings
+    double Lx = 1.0;
+    double Ly = 1.0;
+    double Nx = 9;
+    double Ny = 9;
+    double N = Nx * Ny;
+    double dt = 0.01;
+    double T = 1.0;
+    double Re = 10;
+    double Dx = Lx / (Nx - 1);
+    double Dy = Ly / (Ny - 1);
+    double steps = ceil(T / dt);
+
+    double* input = new double[11]{Nx, Ny, Dx, Dy, Lx, Ly, N, dt, steps, Re};
+    double* readOutput = new double[11]();
+
+    // Expected values vector
+    std::vector<double> expectedValues{Nx, Ny, Dx, Dy, Lx, Ly, N, dt, steps, Re};
+
+    cout << "\nLidDrivenCavity PrintConfig Test:" << endl;
+    // Create and configure an instance of LidDrivenCavity
+    LidDrivenCavity* ldc = new LidDrivenCavity();
+    ldc->SetDomainSize(Lx, Ly);
+    ldc->SetGridSize(Nx, Ny);
+    ldc->SetTimeStep(dt);
+    ldc->SetFinalTime(T);
+    ldc->SetReynoldsNumber(Re);
+
+
+    // Redirect cout to a stringstream
+    std::stringstream buffer;
+    std::streambuf* prevCoutBuf = std::cout.rdbuf(buffer.rdbuf());
+
+    ldc->PrintConfiguration(); // Call the method to capture its output
+
+    std::cout.rdbuf(prevCoutBuf); // Restore the original buffer
+
+    std::string output = buffer.str();
+    // std::cout << "Output:\n" << output; // print captured output
+
+    // Regex to match a floating point number or integer
+    std::regex numberPattern("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?");
+
+    // Use regex iterator to find all matches in the output string
+    std::sregex_iterator iter(output.begin(), output.end(), numberPattern);
+    std::sregex_iterator end;
+    int count = 0;
+    while (iter != end) {
+        std::smatch match = *iter;
+        readOutput[count] = std::stod(match.str());
+        count++;
+        iter++;
+    }
+    BOOST_CHECK(compareSolution(input,readOutput, 11));
+    
+
+    delete ldc;
+    delete[] input;
+    delete[] readOutput;
 }

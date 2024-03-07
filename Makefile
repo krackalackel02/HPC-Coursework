@@ -83,9 +83,12 @@ default: required_dir solver
 all:required_dir $(TARGETS)
 
 required_dir : 
+	@echo "\n-------------------------------"
+	@echo "***Making Required Directories:***\n"
 	@mkdir  -p $(BUILD_DIR)
 	@mkdir  -p $(BIN_DIR)
 	@mkdir  -p $(OUTPUT_DIR)
+	@echo "-------------------------------"
 
 # debugging script to check makefiles targets and rule setting
 debug:
@@ -102,19 +105,19 @@ debug:
 	@echo "-------------------------------"
 
 # main "solver" executable
-solver:$(SOLVER_FILE).o $(OBJ_FILES)
+solver:required_dir $(SOLVER_FILE).o $(OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***MAIN EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
+	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
 	@echo "-------------------------------"
 
 # main "test" executable
-unittests:$(TEST_FILE).o $(OBJ_FILES)
+unittests:required_dir $(TEST_FILE).o $(OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***Test EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
+	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
+	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
 	@echo "-------------------------------"
 
 # filters main "solver" from TARGETS as special output name and libs needed
