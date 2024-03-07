@@ -238,7 +238,7 @@ void LidDrivenCavity::Advance()
         // top
         v[IDX(i, 0)] = 2.0 * dy2i * (s[IDX(i, 0)] - s[IDX(i, 1)]);
         // bottom
-        v[IDX(i, Ny - 1)] = 2.0 * dy2i * (s[IDX(i, Ny - 1)] - s[IDX(i, Ny - 2)]) - 2.0 * dxi * U;
+        v[IDX(i, Ny - 1)] = 2.0 * dy2i * (s[IDX(i, Ny - 1)] - s[IDX(i, Ny - 2)]) - 2.0 * dyi * U;
     }
     for (int j = 1; j < Ny - 1; ++j)
     {
