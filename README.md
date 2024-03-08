@@ -271,7 +271,7 @@ _You can view the document below:_
     - [ ]  Task 4.
         - [ ]  Write Unit Tests
           - [x]  At least one test for Linear CG Solver Class
-          - [ ]  At least one test for lid-driven cavity class
+          - [x]  At least one test for lid-driven cavity class
         - [ ]  Add relevent documentation within test files
         - [ ]  **Report:** Provide brief description 
         - [x]  Compile with "unittests" Makefile target

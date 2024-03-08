@@ -1,21 +1,23 @@
 # build directory for *.d and *.o files
-BUILD_DIR = ./build
+BUILD_DIR = build
 # bin directory for all built executables
-BIN_DIR = ./bin
+BIN_DIR = bin
 # entry point for all source files
-CODE_DIR = ./code
+CODE_DIR = code
 # output directory for any generated text files
-OUTPUT_DIR = ./output
+OUTPUT_DIR = output
 # include directory for location of headers
-INCDIRS = ./code/include
+INC_DIR = code/include
 # compiler
 CC = g++
 # optimisation
 OPT = -O2
 # Dependancy uto generation
-DEPFLAGS = -MP -MD
+DEPFLAGS = -MMD
 # Complete C flags used in compilation
-CFLAGS = -Wall -Wextra -g $(foreach d,$(INCDIRS),-I$(d)) $(OPT) $(DEPFLAGS)
+CFLAGS = -Wall -Wextra -g $(foreach d,$(INC_DIR),-I$(d)) $(OPT) $(DEPFLAGS)
+# Complete L flags used in compilation
+LFLAGS = -Wall -Wextra -g
 # libraries utilised by main "solver"
 MAIN_LIBS = blas boost_program_options
 # append -l to each
@@ -53,18 +55,20 @@ TARGETS = $(basename $(notdir $(EXECUTABLE_FILES)))
 # filter out any executables to form list of linked object files that will be used in link stge for each independant "main" file
 MAIN_CFILES  = $(filter-out $(notdir $(EXECUTABLE_FILES)),$(MAIN_SRC_FILES))
 # Append correct file extension
-MAIN_OBJ_FILES = $(MAIN_CFILES:.cpp=.o)
+MAIN_OBJ_FILES =$(patsubst %, $(BUILD_DIR)/%, $(MAIN_CFILES:.cpp=.o))
 # filter out any executables to form list of linked object files that will be used in link stge for each independant "main" file
 TEST_CFILES  = $(filter-out $(notdir $(EXECUTABLE_FILES)),$(TEST_SRC_FILES))
 # Append correct file extension
-TEST_OBJ_FILES = $(TEST_CFILES:.cpp=.o)
+TEST_OBJ_FILES = $(patsubst %, $(BUILD_DIR)/%,$(TEST_CFILES:.cpp=.o))
 DEP_FILES = $(MAIN_SRC_FILES:.cpp=.d) $(TEST_SRC_FILES:.cpp=.d)
 
+# set default build to be for main solver executable
+.DEFAULT_GOAL = default
 # include path for Makefile auto dependancy tracking
 -include $(patsubst %, $(BUILD_DIR)/%,$(DEP_FILES))
 
 # Vpath used for makefile auto file locating for build process
-VPATH = $(BUILD_DIR) $(filter-out $(CODE_DIR) $(INCDIRS),$(shell find $(CODE_DIR) -type d))
+VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 
 # updated phony targets so Makefile knows these arent files
 .PHONY: all \
@@ -82,16 +86,16 @@ VPATH = $(BUILD_DIR) $(filter-out $(CODE_DIR) $(INCDIRS),$(shell find $(CODE_DIR
 		required_dir
 
 
-# set default build to be for main solver executable
-.DEFAULT_GOAL = default
 
 # ensuring directory required for build process are instantiated
-default: required_dir solver
+default: required_dir solver unittests
+	$(BIN_DIR)/$(TEST_OUT_NAME)
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
 
 required_dir : 
+	clear
 	@echo "\n-------------------------------"
 	@echo "***Making Required Directories:***\n"
 	@mkdir  -p $(BUILD_DIR)
@@ -103,6 +107,7 @@ required_dir :
 debug:
 	@echo "\n-------------------------------"
 	@echo "***DEBUG:***\n"
+	@echo "TEST: $(TEST)"
 	@echo "EXECUTABLES: $(EXECUTABLES)"
 	@echo "TARGETS: $(TARGETS)"
 	@echo "MAIN_CPP_FILES: $(MAIN_SRC_FILES)"
@@ -116,71 +121,72 @@ debug:
 	@echo "-------------------------------"
 
 # main "solver" executable
-solver:required_dir $(SOLVER_FILE).o $(MAIN_OBJ_FILES)
+solver:required_dir $(BUILD_DIR)/$(SOLVER_FILE).o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
 	@echo "-------------------------------"
 
 # main "test" executable
-unittests:required_dir $(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
+unittests:required_dir $(BUILD_DIR)/$(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***Test EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
 	@echo "-------------------------------"
 
 # filters main "solver" from TARGETS as special output name and libs needed
-$(filter %$(SOLVER_FILE), $(TARGETS)): %: %.o $(MAIN_OBJ_FILES)
+$(filter %$(SOLVER_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
 	@echo "-------------------------------"
 
 # filters main "test" from TARGETS as special output name and libs needed
-$(filter %$(TEST_FILE), $(TARGETS)): %: %.o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
+$(filter %$(TEST_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***Test EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
 	@echo "-------------------------------"
 
 # remaining "main" file targets to be built with no special output name
-$(filter-out %$(SOLVER_FILE) %$(TEST_FILE), $(TARGETS)):  %: %.o $(MAIN_OBJ_FILES)
+$(filter-out %$(SOLVER_FILE) %$(TEST_FILE), $(TARGETS)):  %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***NON-MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(notdir $@)"
-	$(CC) $(CFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(notdir $@)
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(notdir $@)
 	@echo "-------------------------------"
 
-# script to catch all object files and compile into build directory
-%.o: %.cpp
+# Rebuilds any prebuilt object files based on triggers in change in dep. header file or associated cpp file or even fresh build
+$(BUILD_DIR)/%.o: %.cpp
 	@echo "\n-------------------------------"
 	@echo "***OBJECT FILE BUILD:***\n"
-	@echo "Compiling \n\t $^ \n into \n\t $@"
-	$(CC) $(CFLAGS) -c $< -o $(BUILD_DIR)/$@
+	@echo "Compiling \n\t $< \n into \n\t $@"
+	$(CC) $(CFLAGS) -c $< -o $@
 	@echo "-------------------------------"
 
 # Checking what files have been built for cleanup
-BUILT_MAIN_OBJ_FILES = $(shell find -wholename '$(BUILD_DIR)/*.o')
-BUILT_DEP_FILES = $(shell find -wholename '$(BUILD_DIR)/*.d')
-BUILT_BIN_FILES = $(shell find -wholename '$(BIN_DIR)/*')
-BUILT_TXT_FILES = $(shell find -wholename '$(OUTPUT_DIR)/*.txt')
+BUILT_OBJ_FILES = $(shell find $(BUILD_DIR) -type f -name '*.o')
+BUILT_DEP_FILES = $(shell find $(BUILD_DIR) -type f -name '*.d')
+BUILT_BIN_FILES = $(shell find $(BIN_DIR) -type f -name '*')
+BUILT_TXT_FILES = $(shell find $(OUTPUT_DIR) -type f -name '*.txt')
+
 
 # cleaning up all files including executables
 clean-all:
 	@echo "\n-------------------------------"
 	@echo "***CLEAN ALL:***\n"
 	@echo "Removing All except source files:"
-	@echo "\tMAIN_OBJ_FILES: $(BUILT_MAIN_OBJ_FILES)"
+	@echo "\tOBJ_FILES: $(BUILT_OBJ_FILES)"
 	@echo "\tDEP_FILES: $(BUILT_DEP_FILES)"
 	@echo "\tEXE_FILES: $(BUILT_BIN_FILES)"
 	@echo "\tTXT_FILES: $(BUILT_TXT_FILES)"
-	@if [ -n "$(BUILT_MAIN_OBJ_FILES)$(BUILT_DEP_FILES)$(BUILT_BIN_FILES)$(BUILT_TXT_FILES)" ]; then \
+	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)$(BUILT_BIN_FILES)$(BUILT_TXT_FILES)" ]; then \
 		echo "Removing files..."; \
-		rm -f  $(BUILT_MAIN_OBJ_FILES) $(BUILT_DEP_FILES) $(BUILT_BIN_FILES) $(BUILT_TXT_FILES); \
+		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) $(BUILT_BIN_FILES) $(BUILT_TXT_FILES); \
 	else \
 		echo "No files to remove."; \
 	fi
@@ -192,11 +198,11 @@ clean-up:
 	@echo "\n-------------------------------"
 	@echo "***CLEAN UP:***\n"
 	@echo "Cleaning up and Removing all build files:"
-	@echo "\tMAIN_OBJ_FILES: $(BUILT_MAIN_OBJ_FILES)"
+	@echo "\tOBJ_FILES: $(BUILT_OBJ_FILES)"
 	@echo "\tDEP_FILES: $(BUILT_DEP_FILES)"
-	@if [ -n "$(BUILT_MAIN_OBJ_FILES)$(BUILT_DEP_FILES)" ]; then \
+	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)" ]; then \
 		echo "Removing files..."; \
-		rm -f  $(BUILT_MAIN_OBJ_FILES) $(BUILT_DEP_FILES) ; \
+		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) ; \
 	else \
 		echo "No files to remove."; \
 	fi
