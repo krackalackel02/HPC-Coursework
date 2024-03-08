@@ -59,10 +59,10 @@ private:
      */
     void ApplyOperator(double* p, double* t);
     /**
-     * @brief Calculates vorticity at the "walls" as the conjugate gradient will not solve for "wall"/edge locations
+     * @brief Uses Jacobi Preconsitioning to scale based of eigenvalues of matrix
      * 
-     * @param p Vector representing gradient in solution e.g. delta to next guess
-     * @param t Vector representing temporary state
+     * @param in residual error vector
+     * @param out preconsitioned residual error vector
      */
     void Precondition(double* p, double* t);
     /**

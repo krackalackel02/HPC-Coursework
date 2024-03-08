@@ -63,7 +63,7 @@ TEST_OBJ_FILES = $(patsubst %, $(BUILD_DIR)/%,$(TEST_CFILES:.cpp=.o))
 DEP_FILES = $(MAIN_SRC_FILES:.cpp=.d) $(TEST_SRC_FILES:.cpp=.d)
 
 # set default build to be for main solver executable
-.DEFAULT_GOAL = default
+.DEFAULT_GOAL = dev
 # include path for Makefile auto dependancy tracking
 -include $(patsubst %, $(BUILD_DIR)/%,$(DEP_FILES))
 
@@ -88,7 +88,9 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 
 
 # ensuring directory required for build process are instantiated
-default: required_dir solver unittests
+default: required_dir solver
+
+dev: required_dir solver unittests
 	$(BIN_DIR)/$(TEST_OUT_NAME)
 
 # target to build all solver and test executables
@@ -126,7 +128,7 @@ solver:required_dir $(BUILD_DIR)/$(SOLVER_FILE).o $(MAIN_OBJ_FILES)
 	@echo "***MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
-	@echo "-------------------------------"
+	@echo "-------------------------------\n"
 
 # main "test" executable
 unittests:required_dir $(BUILD_DIR)/$(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
@@ -134,7 +136,7 @@ unittests:required_dir $(BUILD_DIR)/$(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_
 	@echo "***Test EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
-	@echo "-------------------------------"
+	@echo "-------------------------------\n"
 
 # filters main "solver" from TARGETS as special output name and libs needed
 $(filter %$(SOLVER_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
@@ -142,7 +144,7 @@ $(filter %$(SOLVER_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "***MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
-	@echo "-------------------------------"
+	@echo "-------------------------------\n"
 
 # filters main "test" from TARGETS as special output name and libs needed
 $(filter %$(TEST_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
@@ -150,7 +152,7 @@ $(filter %$(TEST_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES) $(TES
 	@echo "***Test EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
-	@echo "-------------------------------"
+	@echo "-------------------------------\n"
 
 # remaining "main" file targets to be built with no special output name
 $(filter-out %$(SOLVER_FILE) %$(TEST_FILE), $(TARGETS)):  %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
@@ -158,7 +160,7 @@ $(filter-out %$(SOLVER_FILE) %$(TEST_FILE), $(TARGETS)):  %: $(BUILD_DIR)/%.o $(
 	@echo "***NON-MAIN EXE FILE BUILD:***\n"
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(notdir $@)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(notdir $@)
-	@echo "-------------------------------"
+	@echo "-------------------------------\n"
 
 # Rebuilds any prebuilt object files based on triggers in change in dep. header file or associated cpp file or even fresh build
 $(BUILD_DIR)/%.o: %.cpp

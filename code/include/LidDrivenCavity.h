@@ -91,6 +91,7 @@ public:
 
 private:
     double *v = nullptr;   /// Vorticity vector
+    double *vnew = nullptr;   /// Vorticity vector
     double *s = nullptr;   /// Stream function vector
     double *tmp = nullptr; /// Temporary vector
 

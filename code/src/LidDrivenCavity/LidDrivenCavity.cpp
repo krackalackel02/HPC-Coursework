@@ -101,6 +101,7 @@ void LidDrivenCavity::Initialise()
     CleanUp();
     /// Init vorticity, stream function and temporary vector for simulation
     v = new double[Npts]();
+    vnew = new double[Npts]();
     s = new double[Npts]();
     tmp = new double[Npts]();
     /// Init new solver with domain size and discretisation
@@ -202,6 +203,7 @@ void LidDrivenCavity::CleanUp()
     if (v)
     {
         delete[] v;
+        delete[] vnew;
         delete[] s;
         delete[] tmp;
         delete cg;
@@ -262,7 +264,7 @@ void LidDrivenCavity::Advance()
     {
         for (int j = 1; j < Ny - 1; ++j)
         {
-            v[IDX(i, j)] = v[IDX(i, j)] + dt * (((s[IDX(i + 1, j)] - s[IDX(i - 1, j)]) * 0.5 * dxi * (v[IDX(i, j + 1)] - v[IDX(i, j - 1)]) * 0.5 * dyi) - ((s[IDX(i, j + 1)] - s[IDX(i, j - 1)]) * 0.5 * dyi * (v[IDX(i + 1, j)] - v[IDX(i - 1, j)]) * 0.5 * dxi) + nu * (v[IDX(i + 1, j)] - 2.0 * v[IDX(i, j)] + v[IDX(i - 1, j)]) * dx2i + nu * (v[IDX(i, j + 1)] - 2.0 * v[IDX(i, j)] + v[IDX(i, j - 1)]) * dy2i);
+            vnew[IDX(i, j)] = v[IDX(i, j)] + dt * (((s[IDX(i + 1, j)] - s[IDX(i - 1, j)]) * 0.5 * dxi * (v[IDX(i, j + 1)] - v[IDX(i, j - 1)]) * 0.5 * dyi) - ((s[IDX(i, j + 1)] - s[IDX(i, j - 1)]) * 0.5 * dyi * (v[IDX(i + 1, j)] - v[IDX(i - 1, j)]) * 0.5 * dxi) + nu * (v[IDX(i + 1, j)] - 2.0 * v[IDX(i, j)] + v[IDX(i - 1, j)]) * dx2i + nu * (v[IDX(i, j + 1)] - 2.0 * v[IDX(i, j)] + v[IDX(i, j - 1)]) * dy2i);
         }
     }
 
@@ -273,7 +275,7 @@ void LidDrivenCavity::Advance()
     const int l = 3;
     for (int i = 0; i < Nx; ++i) {
         for (int j = 0; j < Ny; ++j) {
-            v[IDX(i,j)] = -M_PI * M_PI * (k * k + l * l)
+            vnew[IDX(i,j)] = -M_PI * M_PI * (k * k + l * l)
                                        * sin(M_PI * k * i * dx)
                                        * sin(M_PI * l * j * dy);
         }
@@ -281,5 +283,5 @@ void LidDrivenCavity::Advance()
     
 
     // Solve Poisson problem
-    cg->Solve(v, s);
+    cg->Solve(vnew, s);
 }

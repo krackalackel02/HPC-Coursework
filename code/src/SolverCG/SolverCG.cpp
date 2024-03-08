@@ -152,10 +152,10 @@ void SolverCG::ApplyOperator(double* in, double* out) {
 }
 
 /**
- * @brief This Implements vorticity calculation for the edge of each "wall". Uses different finite scheme than interior points.
+ * @brief Uses Jacobi Preconsitioning to scale based of eigenvalues of matrix
  * 
- * @param in Vorticity at the "walls"
- * @param out Preconditioned Vorticity at the "walls"
+ * @param in residual error vector
+ * @param out preconsitioned residual error vector
  */
 void SolverCG::Precondition(double* in, double* out) {
     int i, j;

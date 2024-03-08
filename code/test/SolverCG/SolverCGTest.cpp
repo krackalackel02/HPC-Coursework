@@ -30,18 +30,24 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
     {
         for (int j = 0; j < Ny; ++j)
         {
-            v[IDX(i, j)] = -M_PI * M_PI * (k * k + l * l) * sin(M_PI * k * i * dx) * sin(M_PI * l * j * dy);
+            v[IDX(i, j)] = M_PI * M_PI * (k * k + l * l) * sin(M_PI * k * i * dx) * sin(M_PI * l * j * dy);
         }
     }
     for (int i = 0; i < Nx; ++i)
     {
         for (int j = 0; j < Ny; ++j)
         {
-            solution[IDX(i, j)] = -sin(M_PI * k * i * dx) * sin(M_PI * l * j * dy);
+            analytical[IDX(i, j)] = sin(M_PI * k * i * dx) * sin(M_PI * l * j * dy);
         }
     }
-    solver->Solve(v, analytical);
-    BOOST_CHECK(compareSolution(solution, analytical, N,1e-3));
+    solver->Solve(v, solution);
+    // int start = 10000;
+    // for (int i=start; i < start+100; ++i) {
+    
+    //     std::cout << "ANALYTICAL: "<<analytical[i]<<" Solution: "<<analytical[i] << std::endl;
+    
+    // }
+    BOOST_CHECK(compareSolution(analytical, solution, N,1e-3));
 
     delete solver;
     delete[] solution;
