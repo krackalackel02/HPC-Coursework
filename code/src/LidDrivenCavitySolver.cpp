@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     MPI_Cart_create(MPI_COMM_WORLD, dims, sizes, periods, reorder, &cartComm);
 
 
-    if(world_rank==0){
 
         /// Allows custom simulation
         po::options_description opts(
@@ -74,9 +73,9 @@ int main(int argc, char *argv[])
                     "Length of the domain in the x-direction.")
             ("Ly",  po::value<double>()->default_value(1.0),
                     "Length of the domain in the y-direction.")
-            ("Nx",  po::value<int>()->default_value(12),
+            ("Nx",  po::value<int>()->default_value(9),
                     "Number of grid points in x-direction.")
-            ("Ny",  po::value<int>()->default_value(12),
+            ("Ny",  po::value<int>()->default_value(9),
                     "Number of grid points in y-direction.")
             ("dt",  po::value<double>()->default_value(0.01),
                     "Time step size.")
@@ -105,29 +104,25 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-    }
+    
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Bcast(&Nx,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&Ny,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&Lx,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    MPI_Bcast(&Ly,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    MPI_Bcast(&dt,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    MPI_Bcast(&T,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    MPI_Bcast(&Re,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    prl::gridData GRID = prl::gridData( Nx,  Ny,  world_p,  world_rank,  cartComm);
-    int* start = new int[2]();
-    int* stop = new int[2]();
-    int* cartCoord = new int[2]();
-    GRID.getCartCoord(cartCoord);
-    GRID.getStart(start);
-    GRID.getStop(stop);
-    prl::debug(world_rank,"CARTCOORD: (%2d,%2d)\n",cartCoord[0],cartCoord[1]);
-    prl::debug(world_rank,"START: (%2d,%2d)\n",start[0],start[1]);
-    prl::debug(world_rank,"STOP: (%2d,%2d)\n",stop[0],stop[1]);
+    // prl::gridData GRID = prl::gridData( Nx,  Ny,  world_p,  world_rank,  cartComm);
+    // int* start = new int[2]();
+    // int* stop = new int[2]();
+    // int* cartCoord = new int[2]();
+    // GRID.getCartCoord(cartCoord);
+    // GRID.getStart(start);
+    // GRID.getStop(stop);
+    // prl::debug(world_rank,"CARTCOORD: (%2d,%2d)\n",cartCoord[0],cartCoord[1]);
+    // prl::debug(world_rank,"START: (%2d,%2d)\n",start[0],start[1]);
+    // prl::debug(world_rank,"STOP: (%2d,%2d)\n",stop[0],stop[1]);
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::debug(world_rank, "   %2d\n", GRID.getUp());
+    // prl::debug(world_rank, "%2d %2d %2d\n", GRID.getLeft(), GRID.getCenter(), GRID.getRight());
+    // prl::debug(world_rank, "   %2d\n", GRID.getDown());
 
 
-    if(world_rank==0){
+    
         /// New solver instance for defined problem above
         LidDrivenCavity* solver = new LidDrivenCavity();
         solver->SetDomainSize(Lx, Ly);
@@ -135,23 +130,25 @@ int main(int argc, char *argv[])
         solver->SetTimeStep(dt);
         solver->SetFinalTime(T);
         solver->SetReynoldsNumber(Re);
+        // MPI_Barrier(MPI_COMM_WORLD);
+        solver->CartInit(world_p,world_rank,cartComm);
 
-        solver->PrintConfiguration();
+        if(world_rank==0)solver->PrintConfiguration();
 
         solver->Initialise();
 
-        solver->WriteSolution("output/ic.txt");
+        if(world_rank==0)solver->WriteSolution("output/ic.txt");
 
         solver->Integrate();
 
-        solver->WriteSolution("output/final.txt");
+        if(world_rank==0)solver->WriteSolution("output/final.txt");
 
         delete solver;
-    }
+    
 
-    delete[] start;
-    delete[] stop;
-    delete[] cartCoord;
+    // delete[] start;
+    // delete[] stop;
+    // delete[] cartCoord;
     MPI_Finalize();
 	return 0;
 }

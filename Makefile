@@ -10,7 +10,7 @@ OUTPUT_DIR = output
 INC_DIR = code/include
 # compiler
 CC = mpicxx
-THREADS = 2
+THREADS = 1
 # runner
 # RUN = mpiexec -np $(THREADS)
 # optimisation
@@ -228,11 +228,12 @@ git-commit:
 ifndef MSG
 	$(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
 else
+	git checkout mpi
 	git add .
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push --tags
+	git push origin mpi --tags
 git-publish-docs:
 	git subtree push --prefix docs/html origin gh-pages
 git-log:

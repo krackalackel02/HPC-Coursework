@@ -122,7 +122,7 @@ void SolverCG::Solve(double* b, double* x) {
         exit(-1);
     }
 
-    cout << "Converged in " << k << " iterations. eps = " << eps << endl;
+    // cout << "Converged in " << k << " iterations. eps = " << eps << endl;
 }
 
 /**

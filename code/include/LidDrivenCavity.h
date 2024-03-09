@@ -9,7 +9,8 @@
  *
  */
 #pragma once
-
+#include "./ParallelFunc.h"
+#include <mpi.h>
 #include <string>
 using namespace std;
 
@@ -25,6 +26,7 @@ class SolverCG;
 class LidDrivenCavity
 {
 public:
+void CartInit(int p,int rank,MPI_Comm comm);
     /**
      * @brief Construct a new Lid Driven Cavity object
      *
@@ -94,7 +96,10 @@ private:
     double *vnew = nullptr;   /// Vorticity vector
     double *s = nullptr;   /// Stream function vector
     double *tmp = nullptr; /// Temporary vector
-
+    double *MPIv = nullptr;   /// Vorticity vector
+    double *MPIs = nullptr;   /// Stream function vector
+    double *MPItmp = nullptr; /// Temporary vector
+    prl::gridData* GRID = nullptr;
     double dt = 0.01; /// Time step
     double T = 1.0;   /// Final Time
     double dx;        /// X step
@@ -124,4 +129,5 @@ private:
      *
      */
     void Advance();
+    void MPIAdvance();
 };
