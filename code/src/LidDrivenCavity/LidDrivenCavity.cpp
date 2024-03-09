@@ -13,6 +13,9 @@
 #include <fstream>
 #include <cstring>
 #include <cmath>
+#include "../../include/ParallelFunc.h"
+#include <mpi.h>
+
 using namespace std;
 
 #include <cblas.h>
@@ -117,9 +120,9 @@ void LidDrivenCavity::Integrate()
     int NSteps = ceil(T / dt);
     for (int t = 0; t < NSteps; ++t)
     {
-        std::cout << "Step: " << setw(8) << t
-                  << "  Time: " << setw(8) << t * dt
-                  << std::endl;
+        // std::cout << "Step: " << setw(8) << t
+        //   << "  Time: " << setw(8) << t * dt
+        //   << std::endl;
         Advance();
     }
 }
@@ -194,23 +197,6 @@ void LidDrivenCavity::PrintConfiguration()
 }
 
 /**
- * @brief Frees up allocated memory for simulation data
- *
- */
-void LidDrivenCavity::CleanUp()
-{
-    /// if v has been initialised e.g. nolonger nullptr free up all the memory as solver has been called
-    if (v)
-    {
-        delete[] v;
-        delete[] vnew;
-        delete[] s;
-        delete[] tmp;
-        delete cg;
-    }
-}
-
-/**
  * @brief Calculates space domain steps and total number of grid points
  *
  */
@@ -270,7 +256,7 @@ void LidDrivenCavity::Advance()
 
     // // Sinusoidal test case with analytical solution, which can be used to test
     // // the Poisson solver
-    
+
     /* const int k = 3;
     const int l = 3;
     for (int i = 0; i < Nx; ++i) {
@@ -280,8 +266,148 @@ void LidDrivenCavity::Advance()
                                        * sin(M_PI * l * j * dy);
         }
     } */
-    
 
     // Solve Poisson problem
     cg->Solve(vnew, s);
+}
+void LidDrivenCavity::MPIAdvance()
+{
+    /// divisors to be used and multiplied by to optimise code
+    double dxi = 1.0 / dx;
+    double dyi = 1.0 / dy;
+    double dx2i = 1.0 / dx / dx;
+    double dy2i = 1.0 / dy / dy;
+    // MPI_Barrier(MPI_COMM_WORLD);
+
+    GRID->exchangeGhost(MPIv,'V');
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // GRID->exchangeGhost(MPIs,'S');
+    // cout << "here" << endl;
+
+    /*
+    // Boundary node vorticity - Obtained using equations 6-9 on "brief.pdf"
+    for (int i = 1; i < Nx - 1; ++i)
+    {
+        // top
+        v[IDX(i, 0)] = 2.0 * dy2i * (s[IDX(i, 0)] - s[IDX(i, 1)]);
+        // bottom
+        v[IDX(i, Ny - 1)] = 2.0 * dy2i * (s[IDX(i, Ny - 1)] - s[IDX(i, Ny - 2)]) - 2.0 * dyi * U;
+    }
+    for (int j = 1; j < Ny - 1; ++j)
+    {
+        // left
+        v[IDX(0, j)] = 2.0 * dx2i * (s[IDX(0, j)] - s[IDX(1, j)]);
+        // right
+        v[IDX(Nx - 1, j)] = 2.0 * dx2i * (s[IDX(Nx - 1, j)] - s[IDX(Nx - 2, j)]);
+    }
+
+    // Compute interior vorticity - Obtained using equations 10 on "brief.pdf"
+    for (int i = 1; i < Nx - 1; ++i)
+    {
+        for (int j = 1; j < Ny - 1; ++j)
+        {
+            v[IDX(i, j)] = dx2i * (2.0 * s[IDX(i, j)] - s[IDX(i + 1, j)] - s[IDX(i - 1, j)]) + 1.0 / dy / dy * (2.0 * s[IDX(i, j)] - s[IDX(i, j + 1)] - s[IDX(i, j - 1)]);
+        }
+    }
+
+    // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
+    for (int i = 1; i < Nx - 1; ++i)
+    {
+        for (int j = 1; j < Ny - 1; ++j)
+        {
+            v[IDX(i, j)] = v[IDX(i, j)] + dt * (((s[IDX(i + 1, j)] - s[IDX(i - 1, j)]) * 0.5 * dxi * (v[IDX(i, j + 1)] - v[IDX(i, j - 1)]) * 0.5 * dyi) - ((s[IDX(i, j + 1)] - s[IDX(i, j - 1)]) * 0.5 * dyi * (v[IDX(i + 1, j)] - v[IDX(i - 1, j)]) * 0.5 * dxi) + nu * (v[IDX(i + 1, j)] - 2.0 * v[IDX(i, j)] + v[IDX(i - 1, j)]) * dx2i + nu * (v[IDX(i, j + 1)] - 2.0 * v[IDX(i, j)] + v[IDX(i, j - 1)]) * dy2i);
+        }
+    } */
+
+    // // Sinusoidal test case with analytical solution, which can be used to test
+    // // the Poisson solver
+
+    /* const int k = 3;
+    const int l = 3;
+    for (int i = 0; i < Nx; ++i) {
+        for (int j = 0; j < Ny; ++j) {
+            v[IDX(i,j)] = -M_PI * M_PI * (k * k + l * l)
+                                       * sin(M_PI * k * i * dx)
+                                       * sin(M_PI * l * j * dy);
+        }
+    } */
+
+    // Solve Poisson problem
+    // cg->Solve(v, s);
+}
+void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
+{
+    GRID = new prl::gridData(Nx, Ny, p, rank, comm);
+    int *start = new int[2]();
+    int *stop = new int[2]();
+    int *cartCoord = new int[2]();
+    GRID->getCartCoord(cartCoord);
+    GRID->getStart(start);
+    GRID->getStop(stop);
+    prl::debug(rank, "CARTCOORD: (%2d,%2d)\n", cartCoord[0], cartCoord[1]);
+    prl::debug(rank, "START: (%2d,%2d)\n", start[0], start[1]);
+    prl::debug(rank, "STOP: (%2d,%2d)\n", stop[0], stop[1]);
+    MPI_Barrier(MPI_COMM_WORLD);
+    prl::debug(rank, "   %2d\n", GRID->getUp());
+    prl::debug(rank, "%2d %2d %2d\n", GRID->getLeft(), GRID->getCenter(), GRID->getRight());
+    prl::debug(rank, "   %2d\n", GRID->getDown());
+    int size = (GRID->getChunky() + 2) * (GRID->getChunkx() + 2);
+    double fill = 0.0;
+    if(rank==1||rank==3||rank==5||rank==7)fill = 1.0;
+    MPIv = new double[size]();
+    MPItmp = new double[size]();
+    MPIs = new double[size]();
+    for (int i=0; i < size; ++i) {
+    
+        MPIv[i]+=fill;
+        MPIs[i]+=fill;
+    
+    }
+    if(rank==1||rank==3||rank==5||rank==7){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==4){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    GRID->exchangeGhost(MPIv,'V');
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==4){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==1||rank==3||rank==5||rank==7){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIs);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==4){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIs);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    GRID->exchangeGhost(MPIs,'S');
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==4){std::cout<<rank<<" :"<<std::endl;prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIs);}
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // MPIAdvance();
+}
+
+/**
+ * @brief Frees up allocated memory for simulation data
+ *
+ */
+void LidDrivenCavity::CleanUp()
+{
+    /// if v has been initialised e.g. nolonger nullptr free up all the memory as solver has been called
+    if (v)
+    {
+        delete[] v;
+        delete[] s;
+        delete[] tmp;
+        delete cg;
+    }
+
+    if (GRID)
+    {
+
+        delete GRID;
+        cout << "about to delete GRID" << endl;
+        // Stop double deletion
+        GRID = nullptr;
+        delete[] MPIv;
+        delete[] MPIs;
+        delete[] MPItmp;
+    }
 }
