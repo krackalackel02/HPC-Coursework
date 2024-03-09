@@ -9,7 +9,10 @@ OUTPUT_DIR = output
 # include directory for location of headers
 INC_DIR = code/include
 # compiler
-CC = g++
+CC = mpicxx
+THREADS = 2
+# runner
+# RUN = mpiexec -np $(THREADS)
 # optimisation
 OPT = -O2
 # Dependancy uto generation
@@ -91,7 +94,7 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 default: required_dir solver
 
 dev: required_dir solver unittests
-	$(BIN_DIR)/$(TEST_OUT_NAME)
+	$(RUN) $(BIN_DIR)/$(TEST_OUT_NAME)
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
@@ -229,7 +232,7 @@ else
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push origin main
+	git push --tags
 git-publish-docs:
 	git subtree push --prefix docs/html origin gh-pages
 git-log:

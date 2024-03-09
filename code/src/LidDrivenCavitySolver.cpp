@@ -9,62 +9,149 @@
  * 
  */
 #include <iostream>
+#include <mpi.h>
+
 using namespace std;
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
 #include "../include/LidDrivenCavity.h"
+#include "../include/ParallelFunc.h"
+#include <cmath>
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    /// Allows custom simulation
-    po::options_description opts(
-        "Solver for the 2D lid-driven cavity incompressible flow problem");
-    opts.add_options()
-        ("Lx",  po::value<double>()->default_value(1.0),
-                 "Length of the domain in the x-direction.")
-        ("Ly",  po::value<double>()->default_value(1.0),
-                 "Length of the domain in the y-direction.")
-        ("Nx",  po::value<int>()->default_value(9),
-                 "Number of grid points in x-direction.")
-        ("Ny",  po::value<int>()->default_value(9),
-                 "Number of grid points in y-direction.")
-        ("dt",  po::value<double>()->default_value(0.01),
-                 "Time step size.")
-        ("T",   po::value<double>()->default_value(1.0),
-                 "Final time.")
-        ("Re",  po::value<double>()->default_value(10),
-                 "Reynolds number.")
-        ("verbose",    "Be more verbose.")
-        ("help",       "Print help message.");
+    int world_rank = 0;
+    int world_size = 0;
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, opts), vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-        cout << opts << endl;
-        return 0;
+    // Initialise MPI.
+    int err = MPI_Init(&argc, &argv);
+    if (err != MPI_SUCCESS)
+    {
+        cout << "ERROR initialising MPI" << endl;
+        return 1;
     }
 
-    /// New solver instance for defined problem above
-    LidDrivenCavity* solver = new LidDrivenCavity();
-    solver->SetDomainSize(vm["Lx"].as<double>(), vm["Ly"].as<double>());
-    solver->SetGridSize(vm["Nx"].as<int>(),vm["Ny"].as<int>());
-    solver->SetTimeStep(vm["dt"].as<double>());
-    solver->SetFinalTime(vm["T"].as<double>());
-    solver->SetReynoldsNumber(vm["Re"].as<double>());
+    // Get the rank and comm size on each process.
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    solver->PrintConfiguration();
+    if (world_size < 1  || world_size>16)
+    {
 
-    solver->Initialise();
+        if( world_rank==0)cout << "ERROR use between 1 and 16 process" << endl;
+        MPI_Finalize();
+        return 1;
+    }
+    if (sqrt(world_size)!=floor(sqrt(world_size)))
+    {
 
-    solver->WriteSolution("output/ic.txt");
+        if( world_rank==0)cout << "ERROR use square number process" << endl;
+        MPI_Finalize();
+        return 1;
+    }
+    MPI_Comm cartComm;
+    int Nx,Ny;
+    double Lx,Ly,dt,T,Re;
+    int world_p = (int)sqrt(world_size);
+    if(world_rank==0)cout << "P: "<<world_p << endl;
+    const int dims = 2;
+    int sizes[dims] = {world_p,world_p};
+    int periods[dims] = {0, 0};
+    int reorder = 0;
 
-    solver->Integrate();
+    MPI_Cart_create(MPI_COMM_WORLD, dims, sizes, periods, reorder, &cartComm);
 
-    solver->WriteSolution("output/final.txt");
 
+    if(world_rank==0){
+
+        /// Allows custom simulation
+        po::options_description opts(
+            "Solver for the 2D lid-driven cavity incompressible flow problem");
+        opts.add_options()
+            ("Lx",  po::value<double>()->default_value(1.0),
+                    "Length of the domain in the x-direction.")
+            ("Ly",  po::value<double>()->default_value(1.0),
+                    "Length of the domain in the y-direction.")
+            ("Nx",  po::value<int>()->default_value(12),
+                    "Number of grid points in x-direction.")
+            ("Ny",  po::value<int>()->default_value(12),
+                    "Number of grid points in y-direction.")
+            ("dt",  po::value<double>()->default_value(0.01),
+                    "Time step size.")
+            ("T",   po::value<double>()->default_value(1.0),
+                    "Final time.")
+            ("Re",  po::value<double>()->default_value(10),
+                    "Reynolds number.")
+            ("verbose",    "Be more verbose.")
+            ("help",       "Print help message.");
+
+        po::variables_map vm;
+        po::store(po::parse_command_line(argc, argv, opts), vm);
+        po::notify(vm);
+
+        Nx = vm["Nx"].as<int>();
+        Ny = vm["Ny"].as<int>();
+        Lx = vm["Lx"].as<double>();
+        Ly = vm["Ly"].as<double>();
+        dt = vm["dt"].as<double>();
+        T = vm["T"].as<double>();
+        Re = vm["Re"].as<double>();
+        
+
+        if (vm.count("help")) {
+            cout << opts << endl;
+            return 0;
+        }
+
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Bcast(&Nx,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&Ny,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&Lx,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&Ly,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&dt,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&T,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&Re,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    prl::gridData GRID = prl::gridData( Nx,  Ny,  world_p,  world_rank,  cartComm);
+    int* start = new int[2]();
+    int* stop = new int[2]();
+    int* cartCoord = new int[2]();
+    GRID.getCartCoord(cartCoord);
+    GRID.getStart(start);
+    GRID.getStop(stop);
+    prl::debug(world_rank,"CARTCOORD: (%2d,%2d)\n",cartCoord[0],cartCoord[1]);
+    prl::debug(world_rank,"START: (%2d,%2d)\n",start[0],start[1]);
+    prl::debug(world_rank,"STOP: (%2d,%2d)\n",stop[0],stop[1]);
+
+
+    if(world_rank==0){
+        /// New solver instance for defined problem above
+        LidDrivenCavity* solver = new LidDrivenCavity();
+        solver->SetDomainSize(Lx, Ly);
+        solver->SetGridSize(Nx,Ny);
+        solver->SetTimeStep(dt);
+        solver->SetFinalTime(T);
+        solver->SetReynoldsNumber(Re);
+
+        solver->PrintConfiguration();
+
+        solver->Initialise();
+
+        solver->WriteSolution("output/ic.txt");
+
+        solver->Integrate();
+
+        solver->WriteSolution("output/final.txt");
+
+        delete solver;
+    }
+
+    delete[] start;
+    delete[] stop;
+    delete[] cartCoord;
+    MPI_Finalize();
 	return 0;
 }

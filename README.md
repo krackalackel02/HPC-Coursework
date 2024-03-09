@@ -278,6 +278,11 @@ _You can view the document below:_
     - [ ]  Task 5.
         - [ ]  Implement MPI
           - [ ]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
+            - [ ]  Implement distribution of grid into ranks for cart grid
+            - [ ]  Implement exchange of ghost values at boundaries
+            - [ ]  Implement every method
+              - [ ]  Account for if edge of cavity
+              - [ ]  Implement regather of data
           - [ ]  Other choices of P may be considered erroneous and your code should terminate.
           - [ ]  Parallelisation should be achieved using domain decomposition with each dimension of the domain partitioned p ways.
           - [ ]  **Report:** Provide a scaling plot showing the speedup of the code when run in parallel, relative to the case in serial, up to P = 16 ranks. 
