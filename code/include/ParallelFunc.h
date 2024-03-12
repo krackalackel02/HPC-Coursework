@@ -1,5 +1,7 @@
 #pragma once
 #include <mpi.h>
+#define EXCHGIDX(I, J) ((J) * (Chunkx+2) + (I))
+#define LOCIDX(I, J) EXCHGIDX(I+1,J+1)
 namespace prl
 {
     struct gridData
@@ -54,6 +56,7 @@ namespace prl
         int minChunkSize(int N, int p);
         int rem(int N, int p);
         void init();
+        int exchangeCall = 0;
     };
     void debug(int rank, const char *format, ...);
     double get_timer();
