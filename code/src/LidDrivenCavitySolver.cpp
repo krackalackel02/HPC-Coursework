@@ -73,9 +73,9 @@ int main(int argc, char *argv[])
                     "Length of the domain in the x-direction.")
             ("Ly",  po::value<double>()->default_value(1.0),
                     "Length of the domain in the y-direction.")
-            ("Nx",  po::value<int>()->default_value(9),
+            ("Nx",  po::value<int>()->default_value(8),
                     "Number of grid points in x-direction.")
-            ("Ny",  po::value<int>()->default_value(9),
+            ("Ny",  po::value<int>()->default_value(10),
                     "Number of grid points in y-direction.")
             ("dt",  po::value<double>()->default_value(0.01),
                     "Time step size.")
@@ -98,7 +98,13 @@ int main(int argc, char *argv[])
         T = vm["T"].as<double>();
         Re = vm["Re"].as<double>();
         
+    if (world_p>Nx||world_p>Ny)
+    {
 
+        if( world_rank==0)cout << "ERROR use Nx and Ny greater than P" << endl;
+        MPI_Finalize();
+        return 1;
+    }
         if (vm.count("help")) {
             cout << opts << endl;
             return 0;
@@ -143,6 +149,7 @@ int main(int argc, char *argv[])
 
         if(world_rank==0)solver->WriteSolution("output/final.txt");
 
+        MPI_Barrier(MPI_COMM_WORLD);
         delete solver;
     
 

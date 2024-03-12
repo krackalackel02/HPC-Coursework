@@ -6,9 +6,6 @@
 #include <chrono>
 // Library for sleep()
 #include <unistd.h>
-#include <iostream>
-#define IDX(I, J) ((J) * Nx + (I))
-#define LOCIDX(I, J) ((J) * (Chunkx+2) + (I))
 
 prl::gridData::gridData(int init_Nx, int init_Ny, int init_world_p, int init_world_rank, MPI_Comm init_cartComm)
 {
@@ -35,7 +32,7 @@ void prl::gridData::init()
     int minx = minChunkSize(Nx, world_p);
     Chunkx = cartCoord[1] < remx ? minx + 1 : minx;
     int miny = minChunkSize(Ny, world_p);
-    Chunky = cartCoord[1] < remy ? miny + 1 : miny;
+    Chunky = cartCoord[0] < remy ? miny + 1 : miny;
     stop = new int[2]{Chunkx - 1, Chunky - 1};
     loc2glo(start, start);
     loc2glo(stop, stop);
@@ -171,63 +168,64 @@ void prl::gridData::exchangeGhost(double *data,const char msg)
     MPI_Status status;
 
     // Send to Up  / Receive from Down
-    tag = 1;
+    tag = 1+exchangeCall;
     if (upNeighbour >= 0)
     {
-        MPI_Send(&data[LOCIDX(1, 1)], 1, x_edge_type, upNeighbour, tag, cartComm);
+        MPI_Send(&data[EXCHGIDX(1, 1)], 1, x_edge_type, upNeighbour, tag, cartComm);
         // prl::debug(world_rank,"Type %2c Process %2d sending UP to %2d\n",msg,world_rank, upNeighbour );
         // if(world_rank==7)prl::debug(world_rank,"Type %2c Process %2d sending UP to %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, upNeighbour,data[LOCIDX(1, 1)],data[LOCIDX(2, 1)],data[LOCIDX(3, 1)],data[LOCIDX(4, 1)] );
     }
     if (downNeighbour >= 0)
     {
-        MPI_Recv(&data[LOCIDX(1, Chunky+1)], 1, x_edge_type, downNeighbour, tag, cartComm, &status);
+        MPI_Recv(&data[EXCHGIDX(1, Chunky+1)], 1, x_edge_type, downNeighbour, tag, cartComm, &status);
         // prl::debug(world_rank,"Type %2c Process %2d received DOWN from %2d\n",msg,world_rank, downNeighbour );
         // if(world_rank==4)prl::debug(world_rank,"Type %2c Process %2d received DOWN from %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, downNeighbour,data[LOCIDX(1, Chunky+1)],data[LOCIDX(2, Chunky+1)],data[LOCIDX(3, Chunky+1)],data[LOCIDX(4, Chunky+1)] );
     }
 
     // Send to Down  / Receive from Up
-    tag = 2;
+    tag = 2+exchangeCall;
 
     if (downNeighbour >= 0)
     {
-        MPI_Send(&data[LOCIDX(1, Chunky)], 1, x_edge_type, downNeighbour, tag, cartComm);
+        MPI_Send(&data[EXCHGIDX(1, Chunky)], 1, x_edge_type, downNeighbour, tag, cartComm);
         // prl::debug(world_rank,"Type %2c Process %2d sending DOWN to %2d\n",msg,world_rank, downNeighbour );
         // if(world_rank==1)prl::debug(world_rank,"Type %2c Process %2d sending DOWN to %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, downNeighbour,data[LOCIDX(1, Chunky)],data[LOCIDX(2, Chunky)],data[LOCIDX(3, Chunky)],data[LOCIDX(4, Chunky)] );
     }
     if (upNeighbour >= 0)
     {
-        MPI_Recv(&data[LOCIDX(1, 0)], 1, x_edge_type, upNeighbour, tag, cartComm, &status);
+        MPI_Recv(&data[EXCHGIDX(1, 0)], 1, x_edge_type, upNeighbour, tag, cartComm, &status);
         // prl::debug(world_rank,"Type %2c Process %2d received UP from %2d\n",msg,world_rank, upNeighbour );
         // if(world_rank==4)prl::debug(world_rank,"Type %2c Process %2d received UP from %2d\t\t data: %2d  %2d  %2d  %2d  \n",msg,world_rank, upNeighbour,data[LOCIDX(1, 0)],data[LOCIDX(2, 0)],data[LOCIDX(3, 0)],data[LOCIDX(4, 0)] );
     }
 
     // Send to Left  / Receive from Right
-    tag = 3;
+    tag = 3+exchangeCall;
 
     if (leftNeighbour >= 0)
     {
-        MPI_Send(&data[LOCIDX(1, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm);
+        MPI_Send(&data[EXCHGIDX(1, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm);
         // prl::debug(world_rank,"Type %2c Process %2d sending LEFT to %2d\n",msg,world_rank, leftNeighbour );
     }
     if (rightNeighbour >= 0)
     {
-        MPI_Recv(&data[LOCIDX(Chunkx + 1, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm, &status);
+        MPI_Recv(&data[EXCHGIDX(Chunkx + 1, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm, &status);
         // prl::debug(world_rank,"Type %2c Process %2d received RIGHT from %2d\n",msg,world_rank, rightNeighbour );
     }
 
     // Send to Right  / Receive from Left
-    tag = 4;
+    tag = 4+exchangeCall;
 
     if (rightNeighbour >= 0)
     {
-        MPI_Send(&data[LOCIDX(Chunkx, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm);
+        MPI_Send(&data[EXCHGIDX(Chunkx, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm);
         // prl::debug(world_rank,"Type %2c Process %2d sending RIGHT to %2d\n",msg,world_rank, rightNeighbour );
     }
     if (leftNeighbour >= 0)
     {
-        MPI_Recv(&data[LOCIDX(0, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm, &status);
+        MPI_Recv(&data[EXCHGIDX(0, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm, &status);
         // prl::debug(world_rank,"Type %2c Process %2d received LEFT from %2d\n",msg,world_rank, leftNeighbour );
     }
+    exchangeCall++;
 }
 void prl::PrintColMatrix(int m, int n, double *H)
 {
@@ -241,7 +239,8 @@ void prl::PrintColMatrix(int m, int n, double *H)
         std::cout << std::endl;
     }
     std::cout << std::endl;
-}void prl::PrintRowMatrix(int m, int n, double *H)
+}
+void prl::PrintRowMatrix(int m, int n, double *H)
 {
     for (int i = 0; i < n; ++i)
     {
