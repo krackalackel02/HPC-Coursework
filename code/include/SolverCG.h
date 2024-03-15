@@ -9,6 +9,8 @@
  * 
  */
 #pragma once
+#include "./ParallelFunc.h"
+
 /**
  * @class SolverCG
  * @brief This class sets up the solver using the conjugate gradient method
@@ -41,6 +43,7 @@ public:
      * @param x Vector State X0, initial guess for solution on each time step
      */
     void Solve(double* b, double* x);
+    void MPISolve(double* b, double* x,prl::gridData* GRID);
 
 private:
     double dx; /// X step size
@@ -58,6 +61,7 @@ private:
      * @param t Vector representing temporary state
      */
     void ApplyOperator(double* p, double* t);
+    void MPIApplyOperator(double* p, double* t,prl::gridData* GRID);
     /**
      * @brief Uses Jacobi Preconsitioning to scale based of eigenvalues of matrix
      * 
@@ -65,12 +69,14 @@ private:
      * @param out preconsitioned residual error vector
      */
     void Precondition(double* p, double* t);
+    void MPIPrecondition(double* in, double* out,prl::gridData* GRID) ;
     /**
      * @brief Sets initial vorticity at the "walls" to be 0
      * 
      * @param p Vector representing gradient in solution e.g. delta to next guess
      */
     void ImposeBC(double* p);
+    void MPIImposeBC(double* inout,prl::gridData* GRID) ;
 
 };
 
