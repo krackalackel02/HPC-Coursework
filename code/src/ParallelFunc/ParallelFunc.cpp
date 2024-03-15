@@ -6,6 +6,8 @@
 #include <chrono>
 // Library for sleep()
 #include <unistd.h>
+#include <string>
+#include <unordered_map>
 
 prl::gridData::gridData(int init_Nx, int init_Ny, int init_world_p, int init_world_rank, MPI_Comm init_cartComm)
 {
@@ -161,71 +163,55 @@ void prl::debug(int rank, const char *format, ...)
     va_end(args);
 }
 
-void prl::gridData::exchangeGhost(double *data,const char msg)
+void prl::gridData::exchangeGhost(double *data,const std::unordered_map<std::string, std::string>& options)
 {
+    std::string* msgPtr = nullptr;
 
-    int tag;
-    MPI_Status status;
+    // Check if the "msg" option exists in the options map
+    auto msgIter = options.find("msg");
+    if (msgIter != options.end()) {
+        // If "msg" option exists, assign its value to msgPtr
+        msgPtr = const_cast<std::string*>(&msgIter->second);
+    }
+    int nbrs = (int)(upNeighbour >= 0)+(int)(downNeighbour >= 0)+(int)(leftNeighbour >= 0)+(int)(rightNeighbour >= 0);
+    MPI_Status recStat[nbrs];
+    MPI_Request recReq[nbrs];
+    MPI_Request sendReq[nbrs];
+    int count = 0;
 
-    // Send to Up  / Receive from Down
-    tag = 1+exchangeCall;
-    if (upNeighbour >= 0)
-    {
-        MPI_Send(&data[EXCHGIDX(1, 1)], 1, x_edge_type, upNeighbour, tag, cartComm);
-        // prl::debug(world_rank,"Type %2c Process %2d sending UP to %2d\n",msg,world_rank, upNeighbour );
-        // if(world_rank==7)prl::debug(world_rank,"Type %2c Process %2d sending UP to %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, upNeighbour,data[LOCIDX(1, 1)],data[LOCIDX(2, 1)],data[LOCIDX(3, 1)],data[LOCIDX(4, 1)] );
-    }
-    if (downNeighbour >= 0)
-    {
-        MPI_Recv(&data[EXCHGIDX(1, Chunky+1)], 1, x_edge_type, downNeighbour, tag, cartComm, &status);
-        // prl::debug(world_rank,"Type %2c Process %2d received DOWN from %2d\n",msg,world_rank, downNeighbour );
-        // if(world_rank==4)prl::debug(world_rank,"Type %2c Process %2d received DOWN from %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, downNeighbour,data[LOCIDX(1, Chunky+1)],data[LOCIDX(2, Chunky+1)],data[LOCIDX(3, Chunky+1)],data[LOCIDX(4, Chunky+1)] );
-    }
 
-    // Send to Down  / Receive from Up
-    tag = 2+exchangeCall;
+    if (upNeighbour >= 0){
+        MPI_Isend(&data[EXCHGIDX(1, 1)], 1, x_edge_type, upNeighbour, 1, cartComm,&sendReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-SENDING UP to %2d\n",msgPtr->c_str(),world_rank, upNeighbour );
+        MPI_Irecv(&data[EXCHGIDX(1, 0)], 1, x_edge_type, upNeighbour, 2, cartComm,&recReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-RECEIVING UP from %2d\n",msgPtr->c_str(),world_rank, upNeighbour );
+        count++;
+    }
+    if (downNeighbour >= 0){
+        MPI_Irecv(&data[EXCHGIDX(1, Chunky+1)], 1, x_edge_type, downNeighbour, 1, cartComm,&recReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-SENDING DOWN to %2d\n",msgPtr->c_str(),world_rank, downNeighbour );
 
-    if (downNeighbour >= 0)
-    {
-        MPI_Send(&data[EXCHGIDX(1, Chunky)], 1, x_edge_type, downNeighbour, tag, cartComm);
-        // prl::debug(world_rank,"Type %2c Process %2d sending DOWN to %2d\n",msg,world_rank, downNeighbour );
-        // if(world_rank==1)prl::debug(world_rank,"Type %2c Process %2d sending DOWN to %2d\t\t data: %2d  %2d  %2d  %2d\n",msg,world_rank, downNeighbour,data[LOCIDX(1, Chunky)],data[LOCIDX(2, Chunky)],data[LOCIDX(3, Chunky)],data[LOCIDX(4, Chunky)] );
-    }
-    if (upNeighbour >= 0)
-    {
-        MPI_Recv(&data[EXCHGIDX(1, 0)], 1, x_edge_type, upNeighbour, tag, cartComm, &status);
-        // prl::debug(world_rank,"Type %2c Process %2d received UP from %2d\n",msg,world_rank, upNeighbour );
-        // if(world_rank==4)prl::debug(world_rank,"Type %2c Process %2d received UP from %2d\t\t data: %2d  %2d  %2d  %2d  \n",msg,world_rank, upNeighbour,data[LOCIDX(1, 0)],data[LOCIDX(2, 0)],data[LOCIDX(3, 0)],data[LOCIDX(4, 0)] );
-    }
+        MPI_Isend(&data[EXCHGIDX(1, Chunky)], 1, x_edge_type, downNeighbour, 2, cartComm,&sendReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-RECEIVING DOWN from %2d\n",msgPtr->c_str(),world_rank, downNeighbour );
 
-    // Send to Left  / Receive from Right
-    tag = 3+exchangeCall;
-
-    if (leftNeighbour >= 0)
-    {
-        MPI_Send(&data[EXCHGIDX(1, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm);
-        // prl::debug(world_rank,"Type %2c Process %2d sending LEFT to %2d\n",msg,world_rank, leftNeighbour );
+        count++;
     }
-    if (rightNeighbour >= 0)
-    {
-        MPI_Recv(&data[EXCHGIDX(Chunkx + 1, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm, &status);
-        // prl::debug(world_rank,"Type %2c Process %2d received RIGHT from %2d\n",msg,world_rank, rightNeighbour );
+    if (leftNeighbour >= 0){
+        MPI_Isend(&data[EXCHGIDX(1, 1)], 1, y_edge_type, leftNeighbour, 3, cartComm,&sendReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-SENDING LEFT to %2d\n",msgPtr->c_str(),world_rank, leftNeighbour );
+        MPI_Irecv(&data[EXCHGIDX(0, 1)], 1, y_edge_type, leftNeighbour, 4, cartComm,&recReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-RECEIVING LEFT from %2d\n",msgPtr->c_str(),world_rank, leftNeighbour );
+        count++;
     }
-
-    // Send to Right  / Receive from Left
-    tag = 4+exchangeCall;
-
-    if (rightNeighbour >= 0)
-    {
-        MPI_Send(&data[EXCHGIDX(Chunkx, 1)], 1, y_edge_type, rightNeighbour, tag, cartComm);
-        // prl::debug(world_rank,"Type %2c Process %2d sending RIGHT to %2d\n",msg,world_rank, rightNeighbour );
+    if (rightNeighbour >= 0){
+        MPI_Irecv(&data[EXCHGIDX(Chunkx + 1, 1)], 1, y_edge_type, rightNeighbour, 3, cartComm,&recReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-SENDING RIGHT to %2d\n",msgPtr->c_str(),world_rank, rightNeighbour );
+        MPI_Isend(&data[EXCHGIDX(Chunkx, 1)], 1, y_edge_type, rightNeighbour, 4, cartComm,&sendReq[count]);
+        if(msgPtr) prl::debug(world_rank,"EXCHANGE: Type %s ---- Process %2d I-RECEIVING RIGHT from %2d\n",msgPtr->c_str(),world_rank, rightNeighbour );
+        count++;
     }
-    if (leftNeighbour >= 0)
-    {
-        MPI_Recv(&data[EXCHGIDX(0, 1)], 1, y_edge_type, leftNeighbour, tag, cartComm, &status);
-        // prl::debug(world_rank,"Type %2c Process %2d received LEFT from %2d\n",msg,world_rank, leftNeighbour );
-    }
-    exchangeCall++;
+    MPI_Waitall(count,recReq,recStat);
+    
 }
 void prl::PrintColMatrix(int m, int n, double *H)
 {

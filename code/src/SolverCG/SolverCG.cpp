@@ -16,6 +16,7 @@ using namespace std;
 #include <cblas.h>
 
 #include "../../include/SolverCG.h"
+#include "../../include/ParallelFunc.h"
 /**
  * @brief Used as shorthand for coordinates
  * 
@@ -124,6 +125,68 @@ void SolverCG::Solve(double* b, double* x) {
 
     // cout << "Converged in " << k << " iterations. eps = " << eps << endl;
 }
+void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
+    unsigned int n = Nx*Ny;
+    int k;
+    double alpha;
+    double beta;
+    double eps; /// current error
+    double tol = 0.001; /// tolerance of solver
+
+    /// Print out current error, calculated using norm-2
+
+    eps = cblas_dnrm2(n, b, 1);
+    if (eps < tol*tol) {
+        std::fill(x, x+n, 0.0);
+        cout << "Norm is " << eps << endl;
+        return;
+    }
+
+    /// Initialise conjugate gradient algorithm with correct states and boundary conditions.
+    ApplyOperator(x, t);
+    cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
+    ImposeBC(r);
+
+    cblas_daxpy(n, -1.0, t, 1, r, 1);
+    /// solve for outer walls
+    Precondition(r, z);
+    cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
+
+    k = 0;
+    /// Using conjugate gradient method to solve for new vorticity
+    do {
+        k++;
+        // Perform action of Nabla^2 * p
+        ApplyOperator(p, t);
+
+        alpha = cblas_ddot(n, t, 1, p, 1);  // alpha = p_k^T A p_k
+        alpha = cblas_ddot(n, r, 1, z, 1) / alpha; // compute alpha_k
+        beta  = cblas_ddot(n, r, 1, z, 1);  // z_k^T r_k
+
+        cblas_daxpy(n,  alpha, p, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
+        cblas_daxpy(n, -alpha, t, 1, r, 1); // r_{k+1} = r_k - alpha_k A p_k
+
+        eps = cblas_dnrm2(n, r, 1);
+
+        if (eps < tol*tol) {
+            break;
+        }
+        Precondition(r, z);
+        beta = cblas_ddot(n, r, 1, z, 1) / beta;
+
+        cblas_dcopy(n, z, 1, t, 1);
+        cblas_daxpy(n, beta, p, 1, t, 1);
+        cblas_dcopy(n, t, 1, p, 1);
+
+    } while (k < 5000); // Set a maximum number of iterations
+
+    if (k == 5000) {
+        cout << "FAILED TO CONVERGE" << endl;
+        exit(-1);
+    }
+
+    // cout << "Converged in " << k << " iterations. eps = " << eps << endl;
+}
 
 /**
  * @brief Implements the operation such that: out = A * in, where A is the -Nabla^2 where A*X = B
@@ -149,6 +212,35 @@ void SolverCG::ApplyOperator(double* in, double* out) {
         jm1++;
         jp1++;
     }
+}
+void SolverCG::MPIApplyOperator(double* in, double* out,prl::gridData* GRID) {
+    // Assume ordered with y-direction fastest (column-by-column)
+    double dx2i = 1.0/dx/dx;
+    double dy2i = 1.0/dy/dy;
+    int* start = new int[2];
+    int* stop = new int[2];
+    int Chunkx = GRID->getChunkx();
+    int Chunky = GRID->getChunky();
+    GRID->getStart(start);
+    GRID->getStop(stop);
+    GRID->exchangeGhost(in,{{"msg", "Apply Operator"}, {"debug", "true"}});
+    bool wallTop = start[1]==0;
+    bool wallBottom = stop[1]==Ny-1;
+    bool wallLeft = start[0]==0;
+    bool wallRight = stop[0]==Nx-1;
+    int jm1 = 0, jp1 = 2;
+    for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
+    {
+        for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+        {
+
+            out[LOCIDX(i, j)] = (-in[LOCIDX(i - 1, j)] + 2.0 * in[LOCIDX(i, j)] - in[LOCIDX(i + 1, j)]) * dx2i + (-in[LOCIDX(i, jm1)] + 2.0 * in[LOCIDX(i, j)] - in[LOCIDX(i, jp1)]) * dy2i;
+        }
+        jm1++;
+        jp1++;
+    }
+    delete[] start;
+    delete[] stop;
 }
 
 /**
@@ -178,6 +270,61 @@ void SolverCG::Precondition(double* in, double* out) {
         out[IDX(Nx - 1, j)] = in[IDX(Nx - 1, j)];
     }
 }
+void SolverCG::MPIPrecondition(double* in, double* out,prl::gridData* GRID) {
+    int* start = new int[2];
+    int *stop = new int[2];
+    int Chunkx = GRID->getChunkx();
+    int Chunky = GRID->getChunky();
+    GRID->getStart(start);
+    GRID->getStop(stop);
+    bool wallTop = start[1] == 0;
+    bool wallBottom = stop[1] == Ny - 1;
+    bool wallLeft = start[0] == 0;
+    bool wallRight = stop[0] == Nx - 1;
+    int i, j;
+    double dx2i = 1.0/dx/dx;
+    double dy2i = 1.0/dy/dy;
+    double factor = 2.0*(dx2i + dy2i);
+    GRID->exchangeGhost(in);
+    for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
+    {
+        for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+        {
+
+            out[LOCIDX(i, j)] = in[LOCIDX(i, j)] /factor;
+        }
+    }
+    if (wallBottom)
+    {
+        for (int i = 0; i < Chunkx; ++i)
+        {
+            out[LOCIDX(i, 0)] = in[LOCIDX(i, 0)];
+        }
+    }
+    if (wallTop)
+    {
+        for (int i = 0; i < Chunkx; ++i)
+        {
+            out[LOCIDX(i, Chunky - 1)] = in[LOCIDX(i, Chunky - 1)];
+        }
+    }
+    if (wallLeft)
+    {
+        for (int j = 0; j < Chunky; ++j)
+        {
+            out[LOCIDX(0, j)] = in[LOCIDX(0,j)];
+        }
+    }
+    if (wallRight)
+    {
+        for (int j = 0; j < Chunky; ++j)
+        {
+            out[LOCIDX(Chunkx - 1, j)] = in[LOCIDX(Chunkx - 1, j)];
+        }
+    }
+    delete[] start;
+    delete[] stop;
+}
 /**
  * @brief Enforces zero initial vorticity boundary condition along each wall
  * 
@@ -195,4 +342,47 @@ void SolverCG::ImposeBC(double* inout) {
         inout[IDX(Nx - 1, j)] = 0.0;
     }
 
+}
+void SolverCG::MPIImposeBC(double* inout,prl::gridData* GRID) {
+    int* start = new int[2];
+    int *stop = new int[2];
+    int Chunkx = GRID->getChunkx();
+    int Chunky = GRID->getChunky();
+    GRID->getStart(start);
+    GRID->getStop(stop);
+    bool wallTop = start[1] == 0;
+    bool wallBottom = stop[1] == Ny - 1;
+    bool wallLeft = start[0] == 0;
+    bool wallRight = stop[0] == Nx - 1;
+    // Boundaries
+    if (wallBottom)
+    {
+        for (int i = 0; i < Chunkx; ++i)
+        {
+            inout[LOCIDX(i, 0)] = 0.0;
+        }
+    }
+    if (wallTop)
+    {
+        for (int i = 0; i < Chunkx; ++i)
+        {
+            inout[LOCIDX(i, Chunky - 1)] = 0.0;
+        }
+    }
+    if (wallLeft)
+    {
+        for (int j = 0; j < Chunky; ++j)
+        {
+            inout[LOCIDX(0, j)] = 0.0;
+        }
+    }
+    if (wallRight)
+    {
+        for (int j = 0; j < Chunky; ++j)
+        {
+            inout[LOCIDX(Chunkx - 1, j)] = 0.0;
+        }
+    }
+    delete[] start;
+    delete[] stop;
 }

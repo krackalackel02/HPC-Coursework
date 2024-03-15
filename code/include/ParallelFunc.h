@@ -1,5 +1,7 @@
 #pragma once
 #include <mpi.h>
+#include <string>
+#include <unordered_map>
 #define EXCHGIDX(I, J) ((J) * (Chunkx+2) + (I))
 #define LOCIDX(I, J) EXCHGIDX(I+1,J+1)
 namespace prl
@@ -30,7 +32,7 @@ namespace prl
         int getDown();
         void loc2glo(int *locCoord, int *gloCoord);
         void glo2loc(int *locCoord, int *gloCoord);
-        void exchangeGhost(double *data,const char msg);
+        void exchangeGhost(double *data,const std::unordered_map<std::string, std::string>& options={});
 
     private:
         int Nx;
@@ -56,7 +58,6 @@ namespace prl
         int minChunkSize(int N, int p);
         int rem(int N, int p);
         void init();
-        int exchangeCall = 0;
     };
     void debug(int rank, const char *format, ...);
     double get_timer();
