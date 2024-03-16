@@ -26,18 +26,23 @@ void prl::gridData::init()
     world_size = world_p * world_p;
     offsetX = 0;
     offsetY = 0;
+
     cartCoord = new int[2];
-    start = new int[2]();
     MPI_Cart_coords(cartComm, world_rank, 2, cartCoord);
+
     remx = rem(Nx, world_p);
     remy = rem(Ny, world_p);
+
     int minx = minChunkSize(Nx, world_p);
     Chunkx = cartCoord[1] < remx ? minx + 1 : minx;
     int miny = minChunkSize(Ny, world_p);
     Chunky = cartCoord[0] < remy ? miny + 1 : miny;
+
+    start = new int[2]();
     stop = new int[2]{Chunkx - 1, Chunky - 1};
     loc2glo(start, start);
     loc2glo(stop, stop);
+    
     MPI_Cart_rank(cartComm, cartCoord, &cartRank);
     MPI_Cart_shift(cartComm, 0, 1, &upNeighbour, &downNeighbour);
     MPI_Cart_shift(cartComm, 1, 1, &leftNeighbour, &rightNeighbour);
@@ -58,6 +63,9 @@ prl::gridData::~gridData()
     // std::cout << "Deleting GRID object at address " << this << std::endl;
 }
 
+int prl::gridData::getWorldP(){
+return world_p;
+}
 int prl::gridData::getChunkx()
 {
     return Chunkx;

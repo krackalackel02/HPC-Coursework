@@ -185,6 +185,8 @@ void SolverCG::Solve(double* b, double* x) {
 
 
         if (eps < tol*tol) {
+            // cout << "SERIAL ITerations: "<<k << endl;
+            // cout << "SERIAL alpha: "<<alpha << endl;
             break;
         }
         Precondition(r, z);
@@ -319,6 +321,8 @@ void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
         eps = sqrt(eps);
 
         if (eps < tol*tol) {
+            // cout << "ITerations: "<<k << endl;
+            // cout << "alpha: "<<alpha << endl;
             break;
         }
         MPIPrecondition(MPIr, MPIz,GRID);
