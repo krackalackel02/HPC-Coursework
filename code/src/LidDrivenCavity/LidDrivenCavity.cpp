@@ -110,6 +110,18 @@ void LidDrivenCavity::Initialise()
     /// Init new solver with domain size and discretisation
     cg = new SolverCG(Nx, Ny, dx, dy);
 }
+void LidDrivenCavity::MPIInitialise(int p, int rank, MPI_Comm comm)
+{
+    CleanUp();
+    CartInit(p,rank,comm);
+    /// Init vorticity, stream function and temporary vector for simulation
+    v = new double[Npts]();
+    vnew = new double[Npts]();
+    s = new double[Npts]();
+    tmp = new double[Npts]();
+    /// Init new solver with domain size and discretisation
+    cg = new SolverCG(Nx, Ny, dx, dy,GRID);
+}
 /**
  * @brief Calls solver and advances simulation for each timestep
  *
@@ -125,6 +137,26 @@ void LidDrivenCavity::Integrate()
         //   << std::endl;
         Advance();
     }
+
+}
+void LidDrivenCavity::MPIIntegrate()
+{
+    /// number of timesteps
+    int NSteps = ceil(T / dt);
+    for (int t = 0; t < NSteps; ++t)
+    {
+        // if(GRID->getCenter()==0)std::cout << "Step: " << setw(8) << t
+        //   << "  Time: " << setw(8) << t * dt
+        //   << std::endl;
+        // Advance();
+        MPIAdvance();
+    }
+    // if(GRID->getCenter()==0)prl::PrintRowMatrix(Nx,Ny,s);
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter());
+    // std::cout<<"Rank "<<GRID->getCenter()<<":\n"<<std::endl;
+    // prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIs);
+
 }
 /**
  * @brief Writes out simulation data to output file with tabulated properties |x|y|omega|psi|xu|v|
@@ -290,26 +322,27 @@ void LidDrivenCavity::MPIAdvance()
     bool wallRight = stop[0]==Nx-1;
     // Boundary node vorticity - Obtained using equations 6-9 on "brief.pdf"
         if(wallTop){
-            for (int i=0; i < Chunkx; ++i) {
+            for (int i= (!wallLeft?0:1); i < (!wallRight?Chunkx:Chunkx-1) ; ++i) {
                 MPIv[LOCIDX(i,0)] = 2.0 * dy2i * (MPIs[LOCIDX(i, 0)] - MPIs[LOCIDX(i, 1)]);
         }
         }
         if(wallBottom){
-            for (int i=0; i < Chunkx; ++i) {
+            for (int i=(!wallLeft?0:1); i < (!wallRight?Chunkx:Chunkx-1) ;  ++i) {
                 MPIv[LOCIDX(i, Chunky-1)] = 2.0 * dy2i * (MPIs[LOCIDX(i, Chunky - 1)] - MPIs[LOCIDX(i, Chunky - 2)]) - 2.0 * dyi * U;
         }
         }
         if(wallLeft){
-            for (int j=0; j < Chunky; ++j) {
+            for (int j=(!wallTop?0:1); j < (!wallBottom?Chunky:Chunky-1); ++j) {
                 MPIv[LOCIDX(0, j)] = 2.0 * dx2i * (MPIs[LOCIDX(0, j)] - MPIs[LOCIDX(1, j)]);
         }
         }
         if(wallRight){
-            for (int j=0; j < Chunky; ++j) {
+            for (int j=(!wallTop?0:1); j < (!wallBottom?Chunky:Chunky-1); ++j) {
                 MPIv[LOCIDX(Chunkx - 1, j)] = 2.0 * dx2i * (MPIs[LOCIDX(Chunkx - 1, j)] - MPIs[LOCIDX(Chunkx - 2, j)]);
         }
         }
-        GRID->exchangeGhost(MPIv);
+        GRID->edgeZero(MPIs);
+        GRID->exchangeGhost(MPIs);
         // Compute interior vorticity - Obtained using equations 10 on "brief.pdf"
         for (int i = (!wallLeft?0:1); i < (!wallRight?Chunkx:Chunkx-1) ; ++i)
         {
@@ -318,18 +351,21 @@ void LidDrivenCavity::MPIAdvance()
                 MPIv[LOCIDX(i, j)] = dx2i * (2.0 * MPIs[LOCIDX(i, j)] - MPIs[LOCIDX(i + 1, j)] - MPIs[LOCIDX(i - 1, j)]) + 1.0 / dy / dy * (2.0 * MPIs[LOCIDX(i, j)] - MPIs[LOCIDX(i, j + 1)] - MPIs[LOCIDX(i, j - 1)]);
             }
         }
+        GRID->edgeZero(MPIs);
         GRID->exchangeGhost(MPIv);
         // // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
         for (int i = (!wallLeft?0:1); i < (!wallRight?Chunkx:Chunkx-1) ; ++i)
         {
             for (int j = (!wallTop?0:1); j < (!wallBottom?Chunky:Chunky-1) ; ++j)
             {
-                MPIv[LOCIDX(i, j)] = MPIv[LOCIDX(i, j)] + dt * (((MPIs[LOCIDX(i + 1, j)] - MPIs[LOCIDX(i - 1, j)]) * 0.5 * dxi * (MPIv[LOCIDX(i, j + 1)] - MPIv[LOCIDX(i, j - 1)]) * 0.5 * dyi) - ((MPIs[LOCIDX(i, j + 1)] - MPIs[LOCIDX(i, j - 1)]) * 0.5 * dyi * (MPIv[LOCIDX(i + 1, j)] - MPIv[LOCIDX(i - 1, j)]) * 0.5 * dxi) + nu * (MPIv[LOCIDX(i + 1, j)] - 2.0 * MPIv[LOCIDX(i, j)] + MPIv[LOCIDX(i - 1, j)]) * dx2i + nu * (MPIv[LOCIDX(i, j + 1)] - 2.0 * MPIv[LOCIDX(i, j)] + MPIv[LOCIDX(i, j - 1)]) * dy2i);
+                MPIvnew[LOCIDX(i, j)] = MPIv[LOCIDX(i, j)] + dt * (((MPIs[LOCIDX(i + 1, j)] - MPIs[LOCIDX(i - 1, j)]) * 0.5 * dxi * (MPIv[LOCIDX(i, j + 1)] - MPIv[LOCIDX(i, j - 1)]) * 0.5 * dyi) - ((MPIs[LOCIDX(i, j + 1)] - MPIs[LOCIDX(i, j - 1)]) * 0.5 * dyi * (MPIv[LOCIDX(i + 1, j)] - MPIv[LOCIDX(i - 1, j)]) * 0.5 * dxi) + nu * (MPIv[LOCIDX(i + 1, j)] - 2.0 * MPIv[LOCIDX(i, j)] + MPIv[LOCIDX(i - 1, j)]) * dx2i + nu * (MPIv[LOCIDX(i, j + 1)] - 2.0 * MPIv[LOCIDX(i, j)] + MPIv[LOCIDX(i, j - 1)]) * dy2i);
             }
         }
     delete[] start;
     delete[] stop;
-    // cg->MPISolve(MPIv,MPIs);
+        GRID->edgeZero(MPIv);
+        GRID->edgeZero(MPIvnew);
+    cg->MPISolve(MPIvnew,MPIs,GRID);
 }
 void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
 {
@@ -351,28 +387,29 @@ void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
     double fill = 0.0;
     if(rank==1||rank==p)fill = 1.0;
     MPIv = new double[size]();
+    MPIvnew = new double[size]();
     MPItmp = new double[size]();
     MPIs = new double[size]();
-    for (int i=0; i < size; ++i) {
+    // for (int i=0; i < size; ++i) {
     
-        MPIv[i]+=fill;
-        MPIs[i]+=fill;
-        MPItmp[i]+=fill;
+    //     MPIv[i]+=fill;
+    //     MPIs[i]+=fill;
+    //     MPItmp[i]+=fill;
     
-    }
-    if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
-    GRID->exchangeGhost(MPIv,{{"msg", "Checking init exchg"}});
-    if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
-    for (int i=0; i < size; ++i) {
+    // }
+    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
+    // GRID->exchangeGhost(MPIv,{{"msg", "Checking init exchg"}});
+    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
+    // for (int i=0; i < size; ++i) {
     
-        MPIv[i]+=fill;
-        MPIs[i]+=fill;
-        MPItmp[i]+=fill;
+    //     MPIv[i]+=fill;
+    //     MPIs[i]+=fill;
+    //     MPItmp[i]+=fill;
     
-    }
-    GRID->exchangeGhost(MPIv,{{"msg", "Checking init exchg"}});
-    if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
-    MPIAdvance();
+    // }
+    // GRID->exchangeGhost(MPIv,{{"msg", "Checking init exchg"}});
+    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,MPIv);
+    // MPIAdvance();
 }
 
 /**
@@ -385,6 +422,7 @@ void LidDrivenCavity::CleanUp()
     if (v)
     {
         delete[] v;
+        delete[] vnew;
         delete[] s;
         delete[] tmp;
         delete cg;
@@ -394,10 +432,11 @@ void LidDrivenCavity::CleanUp()
     {
 
         delete GRID;
-        cout << "about to delete GRID" << endl;
+        // cout << "about to delete GRID" << endl;
         // Stop double deletion
         GRID = nullptr;
         delete[] MPIv;
+        delete[] MPIvnew;
         delete[] MPIs;
         delete[] MPItmp;
     }

@@ -31,6 +31,7 @@ public:
      * @param pdy Y step size
      */
     SolverCG(int pNx, int pNy, double pdx, double pdy);
+    SolverCG(int pNx, int pNy, double pdx, double pdy,prl::gridData* GRID);
     /**
      * @brief Destroy the Solver C G object
      * 
@@ -54,6 +55,10 @@ private:
     double* p; /// Vector representing gradient in solution e.g. delta to next guess
     double* z; /// Vector representing the preconditioned R vector used to updated temporary state
     double* t; /// Vector representing temporary state
+    double* MPIr=nullptr;
+    double* MPIp=nullptr;
+    double* MPIz=nullptr;
+    double* MPIt=nullptr;
     /**
      * @brief This function applies the operation to an input: A*p = t
      * 
@@ -77,6 +82,7 @@ private:
      */
     void ImposeBC(double* p);
     void MPIImposeBC(double* inout,prl::gridData* GRID) ;
+    double MPICBLASNRM2(double*a,prl::gridData* GRID) ;
 
 };
 

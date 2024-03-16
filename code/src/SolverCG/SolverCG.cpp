@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cstring>
 using namespace std;
+#include <cmath>
+#include <unistd.h>
 
 #include <cblas.h>
 
@@ -43,6 +45,28 @@ SolverCG::SolverCG(int pNx, int pNy, double pdx, double pdy)
     p = new double[n];
     z = new double[n];
     t = new double[n]; //temp
+    
+}
+SolverCG::SolverCG(int pNx, int pNy, double pdx, double pdy,prl::gridData* GRID)
+{
+    /// Initialise domain discretisation and state vectors
+    dx = pdx;
+    dy = pdy;
+    Nx = pNx;
+    Ny = pNy;
+    int n = Nx*Ny;
+    r = new double[n];
+    p = new double[n];
+    z = new double[n];
+    t = new double[n]; //temp
+    int Chunkx = GRID->getChunkx();
+    int Chunky = GRID->getChunky();
+    int size = (Chunky + 2) * (Chunkx + 2);
+    MPIr = new double[size];
+    MPIp = new double[size];
+    MPIz = new double[size];
+    MPIt = new double[size]; //temp
+    
 }
 
 /**
@@ -56,6 +80,13 @@ SolverCG::~SolverCG()
     delete[] p;
     delete[] z;
     delete[] t;
+    if (MPIr)
+    {
+        delete[] MPIr;
+        delete[] MPIp;
+        delete[] MPIz;
+        delete[] MPIt;
+    }
 }
 
 /**
@@ -80,15 +111,51 @@ void SolverCG::Solve(double* b, double* x) {
         return;
     }
 
-    /// Initialise conjugate gradient algorithm with correct states and boundary conditions.
+    // Initialise conjugate gradient algorithm with correct states and boundary conditions.
+    // if(Nx<20){
+
+    //         cout << "SERIAL X:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,x);
+    // }
+    // if(Nx<20){
+
+    //         cout << "SERIAL B:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,b);
+    // }
     ApplyOperator(x, t);
+    // if(Nx<20){
+
+    //         cout << "SERIAL T:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,t);
+    // }
     cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
     ImposeBC(r);
+    // if(Nx<20){
+
+    //         cout << "SERIAL r:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,r);
+    // }
 
     cblas_daxpy(n, -1.0, t, 1, r, 1);
+    // if(Nx<20){
+
+    //         cout << "SERIAL Z:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,z);
+    // }
     /// solve for outer walls
     Precondition(r, z);
     cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
+    // if(Nx<20){
+
+    //         cout << "SERIAL p:" << endl;
+
+    // prl::PrintRowMatrix(Nx,Ny,p);
+    // }
 
     k = 0;
     /// Using conjugate gradient method to solve for new vorticity
@@ -96,21 +163,33 @@ void SolverCG::Solve(double* b, double* x) {
         k++;
         // Perform action of Nabla^2 * p
         ApplyOperator(p, t);
+        //         if(k==1)cout << "SERIAL P" << endl;
 
+        // if(k==1)prl::PrintRowMatrix(Nx,Ny,p);
+        //         if(k==1)cout << "SERIAL Z:" << endl;
+
+        // if(k==1)prl::PrintRowMatrix(Nx,Ny,z);
+        //         if(k==1)cout << "SERIAL R:" << endl;
+
+        // if(k==1)prl::PrintRowMatrix(Nx,Ny,r);
+        // }
         alpha = cblas_ddot(n, t, 1, p, 1);  // alpha = p_k^T A p_k
         alpha = cblas_ddot(n, r, 1, z, 1) / alpha; // compute alpha_k
         beta  = cblas_ddot(n, r, 1, z, 1);  // z_k^T r_k
+        // if(k==1)cout << "SERIAL alpha: "<<alpha << endl;
 
         cblas_daxpy(n,  alpha, p, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
         cblas_daxpy(n, -alpha, t, 1, r, 1); // r_{k+1} = r_k - alpha_k A p_k
 
         eps = cblas_dnrm2(n, r, 1);
 
+
         if (eps < tol*tol) {
             break;
         }
         Precondition(r, z);
         beta = cblas_ddot(n, r, 1, z, 1) / beta;
+        // if(k==1)cout << "SERIAL beta: "<<beta << endl;
 
         cblas_dcopy(n, z, 1, t, 1);
         cblas_daxpy(n, beta, p, 1, t, 1);
@@ -126,62 +205,136 @@ void SolverCG::Solve(double* b, double* x) {
     // cout << "Converged in " << k << " iterations. eps = " << eps << endl;
 }
 void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
-    unsigned int n = Nx*Ny;
+    int Chunkx = GRID->getChunkx();
+    int Chunky = GRID->getChunky();
+    unsigned int n =(Chunkx+2)*(Chunky+2);
     int k;
-    double alpha;
-    double beta;
+    double alpha=0.0;
+    double alphanum=0.0;
+    double alphaden=0.0;
+
+    double localphanum=0.0;
+    double localphaden=0.0;
+    double beta=0.0;
+    double betanum=0.0;
+    double betaden=0.0;
+
+    double locbetanum=0.0;
+    double locbetaden=0.0;
     double eps; /// current error
+    double loceps = 0.0;; /// current error
     double tol = 0.001; /// tolerance of solver
 
     /// Print out current error, calculated using norm-2
-
-    eps = cblas_dnrm2(n, b, 1);
+    loceps=0.0;
+    for (int j=0; j < Chunky; ++j) {
+        for (int i=0; i < Chunkx; ++i) {
+            loceps+=b[LOCIDX(i,j)]*b[LOCIDX(i,j)];
+        }
+    }
+    MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    eps = sqrt(eps);
     if (eps < tol*tol) {
         std::fill(x, x+n, 0.0);
-        cout << "Norm is " << eps << endl;
+        if(GRID->getCenter()==0)cout << "Norm is " << eps << endl;
         return;
     }
 
     /// Initialise conjugate gradient algorithm with correct states and boundary conditions.
-    ApplyOperator(x, t);
-    cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
-    ImposeBC(r);
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "X RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,x);
 
-    cblas_daxpy(n, -1.0, t, 1, r, 1);
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "B RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,b);
+
+    MPIApplyOperator(x, MPIt,GRID);
+    
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "T RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,MPIt);
+
+    cblas_dcopy(n, b, 1, MPIr, 1);        // r_0 = b (i.e. b)
+
+    MPIImposeBC(MPIr,GRID);
+    
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "R RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,MPIr);
+
+    cblas_daxpy(n, -1.0, MPIt, 1, MPIr, 1);
+
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "Z RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,MPIz);
+    
     /// solve for outer walls
-    Precondition(r, z);
-    cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
+    MPIPrecondition(MPIr, MPIz,GRID);
+    
+    cblas_dcopy(n, MPIz, 1, MPIp, 1);        // p_0 = r_0
+
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // prl::time(GRID->getCenter()*1.5);
+    // cout << "P RANK : "<<GRID->getCenter() << endl;
+    // prl::PrintRowMatrix(6,7,MPIp);
 
     k = 0;
     /// Using conjugate gradient method to solve for new vorticity
     do {
         k++;
         // Perform action of Nabla^2 * p
-        ApplyOperator(p, t);
 
-        alpha = cblas_ddot(n, t, 1, p, 1);  // alpha = p_k^T A p_k
-        alpha = cblas_ddot(n, r, 1, z, 1) / alpha; // compute alpha_k
-        beta  = cblas_ddot(n, r, 1, z, 1);  // z_k^T r_k
+        MPIApplyOperator(MPIp, MPIt,GRID);
+        // if(k==1){ MPI_Barrier(MPI_COMM_WORLD);
+        // prl::time(GRID->getCenter()*1.5);
+        // cout << "T RANK : "<<GRID->getCenter() << endl;
+        // prl::PrintRowMatrix(6,7,MPIt);}
 
-        cblas_daxpy(n,  alpha, p, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
-        cblas_daxpy(n, -alpha, t, 1, r, 1); // r_{k+1} = r_k - alpha_k A p_k
+        localphaden = cblas_ddot(n, MPIt, 1, MPIp, 1);  // alpha = p_k^T A p_k
+        MPI_Allreduce(&localphaden,&alphaden,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        localphanum = cblas_ddot(n, MPIr, 1, MPIz, 1); // compute alpha_k
+        MPI_Allreduce(&localphanum,&alphanum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        alpha = alphanum/alphaden;
+        // if(GRID->getCenter()==0&&k==1)cout << "MPI alpha: "<<alpha << endl;
 
-        eps = cblas_dnrm2(n, r, 1);
+        locbetaden  = cblas_ddot(n, MPIr, 1, MPIz, 1);  // z_k^T r_k
+        MPI_Allreduce(&locbetaden,&betaden,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+        cblas_daxpy(n,  alpha, MPIp, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
+        cblas_daxpy(n, -alpha, MPIt, 1, MPIr, 1); // r_{k+1} = r_k - alpha_k A p_k
+
+        loceps=0.0;
+        for (int j=0; j < Chunky; ++j) {
+            for (int i=0; i < Chunkx; ++i) {
+                loceps+=MPIr[LOCIDX(i,j)]*MPIr[LOCIDX(i,j)];
+            }
+        }
+        MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        eps = sqrt(eps);
 
         if (eps < tol*tol) {
             break;
         }
-        Precondition(r, z);
-        beta = cblas_ddot(n, r, 1, z, 1) / beta;
+        MPIPrecondition(MPIr, MPIz,GRID);
+        locbetanum = cblas_ddot(n, MPIr, 1, MPIz, 1);
+        MPI_Allreduce(&locbetanum,&betanum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        beta = betanum/betaden;
+        // if(GRID->getCenter()==0&&k==1)cout << "MPI beta: "<<beta << endl;
 
-        cblas_dcopy(n, z, 1, t, 1);
-        cblas_daxpy(n, beta, p, 1, t, 1);
-        cblas_dcopy(n, t, 1, p, 1);
+        cblas_dcopy(n, MPIz, 1, MPIt, 1);
+        cblas_daxpy(n, beta, MPIp, 1, MPIt, 1);
+        cblas_dcopy(n, MPIt, 1, MPIp, 1);
 
     } while (k < 5000); // Set a maximum number of iterations
 
     if (k == 5000) {
-        cout << "FAILED TO CONVERGE" << endl;
+        if(GRID->getCenter()==0)cout << "FAILED TO CONVERGE" << endl;
         exit(-1);
     }
 
@@ -223,22 +376,27 @@ void SolverCG::MPIApplyOperator(double* in, double* out,prl::gridData* GRID) {
     int Chunky = GRID->getChunky();
     GRID->getStart(start);
     GRID->getStop(stop);
-    GRID->exchangeGhost(in,{{"msg", "Apply Operator"}, {"debug", "true"}});
+    GRID->exchangeGhost(in);
     bool wallTop = start[1]==0;
     bool wallBottom = stop[1]==Ny-1;
     bool wallLeft = start[0]==0;
     bool wallRight = stop[0]==Nx-1;
-    int jm1 = 0, jp1 = 2;
+    // prl::debug(GRID->getCenter(),"at Wall TBLR %d%d%d%d",wallTop,wallBottom,wallLeft,wallRight);
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
         {
 
-            out[LOCIDX(i, j)] = (-in[LOCIDX(i - 1, j)] + 2.0 * in[LOCIDX(i, j)] - in[LOCIDX(i + 1, j)]) * dx2i + (-in[LOCIDX(i, jm1)] + 2.0 * in[LOCIDX(i, j)] - in[LOCIDX(i, jp1)]) * dy2i;
+            out[LOCIDX(i, j)] = (-  in[LOCIDX(i - 1, j)]
+                                 +  2.0 * in[LOCIDX(i, j)]
+                                 -  in[LOCIDX(i + 1, j)]) * dx2i 
+                            + (  -  in[LOCIDX(i, j-1)]
+                                 +  2.0 * in[LOCIDX(i, j)]
+                                 -  in[LOCIDX(i, j+1)]) * dy2i;
         }
-        jm1++;
-        jp1++;
     }
+    GRID->edgeZero(out);
+    GRID->edgeZero(in);
     delete[] start;
     delete[] stop;
 }
@@ -281,11 +439,10 @@ void SolverCG::MPIPrecondition(double* in, double* out,prl::gridData* GRID) {
     bool wallBottom = stop[1] == Ny - 1;
     bool wallLeft = start[0] == 0;
     bool wallRight = stop[0] == Nx - 1;
-    int i, j;
     double dx2i = 1.0/dx/dx;
     double dy2i = 1.0/dy/dy;
     double factor = 2.0*(dx2i + dy2i);
-    GRID->exchangeGhost(in);
+    // GRID->exchangeGhost(in);
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
@@ -294,14 +451,14 @@ void SolverCG::MPIPrecondition(double* in, double* out,prl::gridData* GRID) {
             out[LOCIDX(i, j)] = in[LOCIDX(i, j)] /factor;
         }
     }
-    if (wallBottom)
+    if (wallTop)
     {
         for (int i = 0; i < Chunkx; ++i)
         {
             out[LOCIDX(i, 0)] = in[LOCIDX(i, 0)];
         }
     }
-    if (wallTop)
+    if (wallBottom)
     {
         for (int i = 0; i < Chunkx; ++i)
         {
@@ -355,14 +512,14 @@ void SolverCG::MPIImposeBC(double* inout,prl::gridData* GRID) {
     bool wallLeft = start[0] == 0;
     bool wallRight = stop[0] == Nx - 1;
     // Boundaries
-    if (wallBottom)
+    if (wallTop)
     {
         for (int i = 0; i < Chunkx; ++i)
         {
             inout[LOCIDX(i, 0)] = 0.0;
         }
     }
-    if (wallTop)
+    if (wallBottom)
     {
         for (int i = 0; i < Chunkx; ++i)
         {
