@@ -18,6 +18,7 @@ namespace po = boost::program_options;
 
 #include "../include/LidDrivenCavity.h"
 #include "../include/ParallelFunc.h"
+#include "../include/Test.h"
 #include <cmath>
 
 int main(int argc, char *argv[])
@@ -73,15 +74,15 @@ int main(int argc, char *argv[])
                     "Length of the domain in the x-direction.")
             ("Ly",  po::value<double>()->default_value(1.0),
                     "Length of the domain in the y-direction.")
-            ("Nx",  po::value<int>()->default_value(8),
+            ("Nx",  po::value<int>()->default_value(50),
                     "Number of grid points in x-direction.")
-            ("Ny",  po::value<int>()->default_value(10),
+            ("Ny",  po::value<int>()->default_value(50),
                     "Number of grid points in y-direction.")
-            ("dt",  po::value<double>()->default_value(0.01),
+            ("dt",  po::value<double>()->default_value(0.0001),
                     "Time step size.")
             ("T",   po::value<double>()->default_value(1.0),
                     "Final time.")
-            ("Re",  po::value<double>()->default_value(10),
+            ("Re",  po::value<double>()->default_value(1),
                     "Reynolds number.")
             ("verbose",    "Be more verbose.")
             ("help",       "Print help message.");
@@ -137,19 +138,16 @@ int main(int argc, char *argv[])
         solver->SetFinalTime(T);
         solver->SetReynoldsNumber(Re);
         // MPI_Barrier(MPI_COMM_WORLD);
-        solver->CartInit(world_p,world_rank,cartComm);
 
         if(world_rank==0)solver->PrintConfiguration();
 
-        solver->Initialise();
-
+        solver->MPIInitialise(world_p,world_rank,cartComm);
         if(world_rank==0)solver->WriteSolution("output/ic.txt");
 
-        solver->Integrate();
+        solver->MPIIntegrate();
 
         if(world_rank==0)solver->WriteSolution("output/final.txt");
 
-        MPI_Barrier(MPI_COMM_WORLD);
         delete solver;
     
 

@@ -74,11 +74,13 @@ void CartInit(int p,int rank,MPI_Comm comm);
      *
      */
     void Initialise();
+    void MPIInitialise(int p, int rank, MPI_Comm comm);
     /**
      * @brief Used to iterate through time steps can call Advance()
      *
      */
     void Integrate();
+    void MPIIntegrate();
     /**
      * @brief Writes solution to output file
      *
@@ -97,6 +99,7 @@ private:
     double *s = nullptr;   /// Stream function vector
     double *tmp = nullptr; /// Temporary vector
     double *MPIv = nullptr;   /// Vorticity vector
+    double *MPIvnew = nullptr;   /// Vorticity vector
     double *MPIs = nullptr;   /// Stream function vector
     double *MPItmp = nullptr; /// Temporary vector
     prl::gridData* GRID = nullptr;
@@ -112,7 +115,6 @@ private:
     double Re = 10;   /// Reynolds number
     double U = 1.0;   /// Freestream velocity
     double nu = 0.1;  /// Nu : 1/Re
-
     SolverCG *cg = nullptr; /// Spatial solver
     /**
      * @brief Cleans up and deallocated dynamic memory

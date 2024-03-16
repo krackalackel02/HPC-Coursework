@@ -2,6 +2,7 @@
 #include <mpi.h>
 #include <string>
 #include <unordered_map>
+#include <unistd.h>
 #define EXCHGIDX(I, J) ((J) * (Chunkx+2) + (I))
 #define LOCIDX(I, J) EXCHGIDX(I+1,J+1)
 namespace prl
@@ -30,9 +31,11 @@ namespace prl
         int getRight();
         int getUp();
         int getDown();
+        int getRank();
         void loc2glo(int *locCoord, int *gloCoord);
         void glo2loc(int *locCoord, int *gloCoord);
         void exchangeGhost(double *data,const std::unordered_map<std::string, std::string>& options={});
+        void edgeZero(double *data);
 
     private:
         int Nx;
@@ -63,5 +66,6 @@ namespace prl
     double get_timer();
     void PrintColMatrix(int m, int n, double *H);
     void PrintRowMatrix(int m, int n, double *H);
+    void time(int n);
 
 }

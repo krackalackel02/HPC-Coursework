@@ -55,7 +55,7 @@ prl::gridData::~gridData()
     delete[] cartCoord;
     delete[] start;
     delete[] stop;
-    std::cout << "Deleting GRID object at address " << this << std::endl;
+    // std::cout << "Deleting GRID object at address " << this << std::endl;
 }
 
 int prl::gridData::getChunkx()
@@ -213,6 +213,24 @@ void prl::gridData::exchangeGhost(double *data,const std::unordered_map<std::str
     MPI_Waitall(count,recReq,recStat);
     
 }
+void prl::gridData::edgeZero(double* data){
+    for (int i = 0; i < Chunkx+2; ++i)
+    {
+        data[EXCHGIDX(i, 0)] = 0.0;
+    }
+    for (int i = 0; i < Chunkx+2; ++i)
+    {
+        data[EXCHGIDX(i, Chunky+1)] = 0.0;
+    }
+    for (int j = 0; j < Chunky+2; ++j)
+    {
+        data[EXCHGIDX(0,j)] = 0.0;
+    }
+    for (int j = 0; j < Chunky+2; ++j)
+    {
+        data[EXCHGIDX(Chunkx+1,j)] = 0.0;
+    }
+}
 void prl::PrintColMatrix(int m, int n, double *H)
 {
     for (int i = 0; i < m; ++i)
@@ -239,3 +257,4 @@ void prl::PrintRowMatrix(int m, int n, double *H)
     }
     std::cout << std::endl;
 }
+void prl::time(int n){sleep(n);}
