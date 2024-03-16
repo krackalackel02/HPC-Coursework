@@ -87,6 +87,7 @@ void CartInit(int p,int rank,MPI_Comm comm);
      * @param file File name
      */
     void WriteSolution(std::string file);
+    void MPIWriteSolution(std::string file);
     /**
      * @brief Prints simulation data to the terminal
      *

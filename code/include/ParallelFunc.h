@@ -24,6 +24,7 @@ namespace prl
         void getCartCoord(int *COORD);
         void getStart(int *COORD);
         void getStop(int *COORD);
+        int getWorldP();
         int getChunkx();
         int getChunky();
         int getLeft();

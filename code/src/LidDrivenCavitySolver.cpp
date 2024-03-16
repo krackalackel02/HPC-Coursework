@@ -74,15 +74,15 @@ int main(int argc, char *argv[])
                     "Length of the domain in the x-direction.")
             ("Ly",  po::value<double>()->default_value(1.0),
                     "Length of the domain in the y-direction.")
-            ("Nx",  po::value<int>()->default_value(50),
+            ("Nx",  po::value<int>()->default_value(9),
                     "Number of grid points in x-direction.")
-            ("Ny",  po::value<int>()->default_value(50),
+            ("Ny",  po::value<int>()->default_value(9),
                     "Number of grid points in y-direction.")
-            ("dt",  po::value<double>()->default_value(0.0001),
+            ("dt",  po::value<double>()->default_value(0.01),
                     "Time step size.")
-            ("T",   po::value<double>()->default_value(1.0),
+            ("T",   po::value<double>()->default_value(1),
                     "Final time.")
-            ("Re",  po::value<double>()->default_value(1),
+            ("Re",  po::value<double>()->default_value(10),
                     "Reynolds number.")
             ("verbose",    "Be more verbose.")
             ("help",       "Print help message.");
@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
         solver->MPIIntegrate();
 
         if(world_rank==0)solver->WriteSolution("output/final.txt");
+        solver->MPIWriteSolution("output/final.txt");
 
         delete solver;
     

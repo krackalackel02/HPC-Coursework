@@ -77,6 +77,7 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 .PHONY: all \
 		clean-all \
 		clean-up \
+		clean-output \
 		debug \
 		docs \
 		git-publish-docs \
@@ -177,7 +178,7 @@ $(BUILD_DIR)/%.o: %.cpp
 BUILT_OBJ_FILES = $(shell find $(BUILD_DIR) -type f -name '*.o')
 BUILT_DEP_FILES = $(shell find $(BUILD_DIR) -type f -name '*.d')
 BUILT_BIN_FILES = $(shell find $(BIN_DIR) -type f -name '*')
-BUILT_TXT_FILES = $(shell find $(OUTPUT_DIR) -type f -name '*.txt')
+BUILT_OUTPUT_FILES = $(shell find $(OUTPUT_DIR) -type f -name '*')
 
 
 # cleaning up all files including executables
@@ -188,10 +189,10 @@ clean-all:
 	@echo "\tOBJ_FILES: $(BUILT_OBJ_FILES)"
 	@echo "\tDEP_FILES: $(BUILT_DEP_FILES)"
 	@echo "\tEXE_FILES: $(BUILT_BIN_FILES)"
-	@echo "\tTXT_FILES: $(BUILT_TXT_FILES)"
-	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)$(BUILT_BIN_FILES)$(BUILT_TXT_FILES)" ]; then \
+	@echo "\tOUTPUT_FILES: $(BUILT_OUTPUT_FILES)"
+	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)$(BUILT_BIN_FILES)$(BUILT_OUTPUT_FILES)" ]; then \
 		echo "Removing files..."; \
-		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) $(BUILT_BIN_FILES) $(BUILT_TXT_FILES); \
+		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) $(BUILT_BIN_FILES) $(BUILT_OUTPUT_FILES); \
 	else \
 		echo "No files to remove."; \
 	fi
@@ -205,9 +206,21 @@ clean-up:
 	@echo "Cleaning up and Removing all build files:"
 	@echo "\tOBJ_FILES: $(BUILT_OBJ_FILES)"
 	@echo "\tDEP_FILES: $(BUILT_DEP_FILES)"
-	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)" ]; then \
+	@if [ -n "$(BUILT_OBJ_FILES)$(BUILT_DEP_FILES)$(BUILT_OUTPUT_FILES)" ]; then \
 		echo "Removing files..."; \
-		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) ; \
+		rm -f  $(BUILT_OBJ_FILES) $(BUILT_DEP_FILES) $(BUILT_OUTPUT_FILES) ; \
+	else \
+		echo "No files to remove."; \
+	fi
+	@echo "-------------------------------"
+# cleaning up all output files
+clean-output:
+	@echo "\n-------------------------------"
+	@echo "***CLEAN UP:***\n"
+	@echo "Cleaning up all output files:"
+	@if [ -n "$(BUILT_OUTPUT_FILES)" ]; then \
+		echo "Removing files..."; \
+		rm -f   $(BUILT_OUTPUT_FILES) ; \
 	else \
 		echo "No files to remove."; \
 	fi
