@@ -10,9 +10,9 @@ OUTPUT_DIR = output
 INC_DIR = code/include
 # compiler
 CC = mpicxx
-THREADS = 1
+THREADS = 16
 # runner
-# RUN = mpiexec -np $(THREADS)
+RUN = mpiexec -np $(THREADS)
 # optimisation
 OPT = -O2
 # Dependancy uto generation
