@@ -543,9 +543,9 @@ void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
     GRID->getCartCoord(cartCoord);
     GRID->getStart(start);
     GRID->getStop(stop);
-    prl::debug(rank, "CARTCOORD: (%2d,%2d)\n", cartCoord[0], cartCoord[1]);
-    prl::debug(rank, "START: (%2d,%2d)\n", start[0], start[1]);
-    prl::debug(rank, "STOP: (%2d,%2d)\n", stop[0], stop[1]);
+    // prl::debug(rank, "CARTCOORD: (%2d,%2d)\n", cartCoord[0], cartCoord[1]);
+    // prl::debug(rank, "START: (%2d,%2d)\n", start[0], start[1]);
+    // prl::debug(rank, "STOP: (%2d,%2d)\n", stop[0], stop[1]);
     // MPI_Barrier(MPI_COMM_WORLD);
     // prl::debug(rank, "   %2d\n", GRID->getUp());
     // prl::debug(rank, "%2d %2d %2d\n", GRID->getLeft(), GRID->getCenter(), GRID->getRight());

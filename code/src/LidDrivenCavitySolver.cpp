@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
     delete solver;
     
-
+    MPI_Comm_free(&cartComm);
     MPI_Finalize();
 	return 0;
 }

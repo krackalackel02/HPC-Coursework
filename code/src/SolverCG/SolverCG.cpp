@@ -312,7 +312,7 @@ void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
         GRID->edgeZero(MPIr);
     loceps = cblas_dnrm2(n, MPIr, 1);
         MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        eps = sqrt(eps);
+        // eps = sqrt(eps);
 
         if (eps < tol*tol) {
             // cout << "ITerations: "<<k << endl;
