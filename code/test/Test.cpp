@@ -32,7 +32,7 @@ MPIFixture::MPIFixture()
 {
     argc = boost::unit_test::framework::master_test_suite().argc;
     argv = boost::unit_test::framework::master_test_suite().argv;
-    std::cout << "Initialising MPI" << std::endl;
+    // std::cout << "Initialising MPI" << std::endl;
     int err = MPI_Init(&argc, &argv);
     if (err != MPI_SUCCESS)
     {
@@ -61,11 +61,13 @@ MPIFixture::MPIFixture()
         MPI_Finalize(); // Ensure MPI is finalized if there's an error
         BOOST_FAIL(msg);
     }
+    if (world_rank == 0) std::cout << "P: " << floor(sqrt(world_size)) << std::endl;
+
 }
 
 MPIFixture::~MPIFixture()
 {
-    std::cout << "Finalising MPI" << std::endl;
+    // std::cout << "Finalising MPI" << std::endl;
     MPI_Finalize();
 }
 
