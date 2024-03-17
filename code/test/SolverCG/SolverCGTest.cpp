@@ -29,11 +29,10 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
     double Ly = 1.0; // Example grid size
     double dx = Lx / (double)(Nx - 1);
     double dy = Ly / (double)(Ny - 1);
-    int N = Nx * Ny;
     LidDrivenCavity* ldc = new LidDrivenCavity();
     ldc->SetDomainSize(Lx, Ly);
     ldc->SetGridSize(Nx,Ny);
-    ldc->MPIInitialise(world_p,world_rank,cartComm);
+    ldc->Initialise(world_p,world_rank,cartComm);
     prl::gridData* GRID= ldc->getGRID();
     SolverCG *solver = new SolverCG(Nx, Ny, dx, dy,GRID);
     int *start = new int[2];
@@ -61,7 +60,7 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
                 analytical[idx] = sin(M_PI * k * x) * sin(M_PI * l * y);
         }
     }
-    solver->MPISolve(locV,solution,GRID);
+    solver->Solve(locV,solution,GRID);
     double locError = 0.0;
     double ERR = 0.0;
     for (int i = start[0]; i <= stop[0]; ++i)
@@ -106,11 +105,10 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_ZeroTest){
     double Ly = 1.0; // Example grid size
     double dx = Lx / (double)(Nx - 1);
     double dy = Ly / (double)(Ny - 1);
-    int N = Nx * Ny;
     LidDrivenCavity* ldc = new LidDrivenCavity();
     ldc->SetDomainSize(Lx, Ly);
     ldc->SetGridSize(Nx,Ny);
-    ldc->MPIInitialise(world_p,world_rank,cartComm);
+    ldc->Initialise(world_p,world_rank,cartComm);
     prl::gridData* GRID= ldc->getGRID();
     SolverCG *solver = new SolverCG(Nx, Ny, dx, dy,GRID);
     int *start = new int[2];
@@ -123,7 +121,7 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_ZeroTest){
     double *analytical = new double[size]();
     double *solution = new double[size]();
     double *locV = new double[size]();
-    solver->MPISolve(locV,solution,GRID);
+    solver->Solve(locV,solution,GRID);
     int idx;
     double locError = 0.0;
     double ERR = 0.0;

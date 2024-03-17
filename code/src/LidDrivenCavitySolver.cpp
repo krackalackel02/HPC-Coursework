@@ -120,12 +120,12 @@ int main(int argc, char *argv[])
 
     if(world_rank==0)solver->PrintConfiguration();
 
-    solver->MPIInitialise(world_p,world_rank,cartComm);
-    solver->MPIWriteSolution("output/ic.txt");
+    solver->Initialise(world_p,world_rank,cartComm);
+    solver->WriteSolution("output/ic.txt");
 
-    solver->MPIIntegrate();
+    solver->Integrate();
 
-    solver->MPIWriteSolution("output/final.txt");
+    solver->WriteSolution("output/final.txt");
 
     delete solver;
     
