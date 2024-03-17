@@ -44,6 +44,10 @@ void CartInit(int p,int rank,MPI_Comm comm);
      * @param ylen Length of y domain
      */
     void SetDomainSize(double xlen, double ylen);
+    void SetMPIv(int idx, double val);
+    double GetMPIv(int idx);
+    void SetMPIs(int idx, double val);
+    double GetMPIs(int idx);
     /**
      * @brief Set the Grid Size object
      *
@@ -93,6 +97,7 @@ void CartInit(int p,int rank,MPI_Comm comm);
      *
      */
     void PrintConfiguration();
+    prl::gridData* getGRID();
 
 private:
     double *v = nullptr;   /// Vorticity vector

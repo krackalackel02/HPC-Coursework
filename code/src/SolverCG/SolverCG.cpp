@@ -229,11 +229,8 @@ void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
 
     /// Print out current error, calculated using norm-2
     loceps=0.0;
-    for (int j=0; j < Chunky; ++j) {
-        for (int i=0; i < Chunkx; ++i) {
-            loceps+=b[LOCIDX(i,j)]*b[LOCIDX(i,j)];
-        }
-    }
+    GRID->edgeZero(b);
+    loceps = cblas_dnrm2(n, b, 1);
     MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     eps = sqrt(eps);
     if (eps < tol*tol) {
@@ -312,11 +309,8 @@ void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
         cblas_daxpy(n, -alpha, MPIt, 1, MPIr, 1); // r_{k+1} = r_k - alpha_k A p_k
 
         loceps=0.0;
-        for (int j=0; j < Chunky; ++j) {
-            for (int i=0; i < Chunkx; ++i) {
-                loceps+=MPIr[LOCIDX(i,j)]*MPIr[LOCIDX(i,j)];
-            }
-        }
+        GRID->edgeZero(MPIr);
+    loceps = cblas_dnrm2(n, MPIr, 1);
         MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
         eps = sqrt(eps);
 
@@ -342,7 +336,7 @@ void SolverCG::MPISolve(double* b, double* x,prl::gridData* GRID) {
         exit(-1);
     }
 
-    // cout << "Converged in " << k << " iterations. eps = " << eps << endl;
+    if(GRID->getCenter()==0)cout << "Converged in " << k << " iterations. eps = " << eps << endl;
 }
 
 /**
