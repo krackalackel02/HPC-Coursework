@@ -30,7 +30,6 @@ public:
      * @param pdx X step size
      * @param pdy Y step size
      */
-    SolverCG(int pNx, int pNy, double pdx, double pdy);
     SolverCG(int pNx, int pNy, double pdx, double pdy,prl::gridData* GRID);
     /**
      * @brief Destroy the Solver C G object
@@ -43,46 +42,36 @@ public:
      * @param b Vector Result B
      * @param x Vector State X0, initial guess for solution on each time step
      */
-    void Solve(double* b, double* x);
-    void MPISolve(double* b, double* x,prl::gridData* GRID);
+    void Solve(double* b, double* x,prl::gridData* GRID);
 
 private:
     double dx; /// X step size
     double dy; /// Y step size
     int Nx; /// Number of x points
     int Ny; /// Number of y points
-    double* r; /// Vector representing error in current solution, R: R0 = B-A*X0, Rk+1 = Rk - alphak*Pk
-    double* p; /// Vector representing gradient in solution e.g. delta to next guess
-    double* z; /// Vector representing the preconditioned R vector used to updated temporary state
-    double* t; /// Vector representing temporary state
-    double* MPIr=nullptr;
-    double* MPIp=nullptr;
-    double* MPIz=nullptr;
-    double* MPIt=nullptr;
+    double* r=nullptr; /// Vector representing error in current solution, R: R0 = B-A*X0, Rk+1 = Rk - alphak*Pk
+    double* p=nullptr; /// Vector representing gradient in solution e.g. delta to next guess
+    double* z=nullptr; /// Vector representing the preconditioned R vector used to updated temporary state
+    double* t=nullptr; /// Vector representing temporary state
     /**
      * @brief This function applies the operation to an input: A*p = t
      * 
      * @param p Vector representing gradient in solution e.g. delta to next guess
      * @param t Vector representing temporary state
      */
-    void ApplyOperator(double* p, double* t);
-    void MPIApplyOperator(double* p, double* t,prl::gridData* GRID);
+    void ApplyOperator(double* p, double* t,prl::gridData* GRID);
     /**
      * @brief Uses Jacobi Preconsitioning to scale based of eigenvalues of matrix
      * 
      * @param in residual error vector
      * @param out preconsitioned residual error vector
      */
-    void Precondition(double* p, double* t);
-    void MPIPrecondition(double* in, double* out,prl::gridData* GRID) ;
+    void Precondition(double* in, double* out,prl::gridData* GRID) ;
     /**
      * @brief Sets initial vorticity at the "walls" to be 0
      * 
      * @param p Vector representing gradient in solution e.g. delta to next guess
      */
-    void ImposeBC(double* p);
-    void MPIImposeBC(double* inout,prl::gridData* GRID) ;
-    double MPICBLASNRM2(double*a,prl::gridData* GRID) ;
-
+    void ImposeBC(double* inout,prl::gridData* GRID) ;
 };
 

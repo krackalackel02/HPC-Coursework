@@ -107,10 +107,9 @@ BOOST_AUTO_TEST_CASE(LidDrivenCavity_WRITESOLUTION_Test)
     ldc->SetTimeStep(dt);
     ldc->SetFinalTime(T);
     ldc->SetReynoldsNumber(Re);
-    ldc->MPIInitialise(world_p, world_rank, cartComm);
-    prl::gridData *GRID = ldc->getGRID();
+    ldc->Initialise(world_p, world_rank, cartComm);
     std::string filePath = "output/ic.txt";
-    ldc->MPIWriteSolution(filePath);
+    ldc->WriteSolution(filePath);
     if (world_rank == 0)
     {
 

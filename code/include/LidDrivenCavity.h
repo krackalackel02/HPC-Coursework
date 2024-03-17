@@ -44,10 +44,10 @@ void CartInit(int p,int rank,MPI_Comm comm);
      * @param ylen Length of y domain
      */
     void SetDomainSize(double xlen, double ylen);
-    void SetMPIv(int idx, double val);
-    double GetMPIv(int idx);
-    void SetMPIs(int idx, double val);
-    double GetMPIs(int idx);
+    void Setv(int idx, double val);
+    double Getv(int idx);
+    void Sets(int idx, double val);
+    double Gets(int idx);
     /**
      * @brief Set the Grid Size object
      *
@@ -77,21 +77,18 @@ void CartInit(int p,int rank,MPI_Comm comm);
      * @brief Initialises Solver with domain and initial values
      *
      */
-    void Initialise();
-    void MPIInitialise(int p, int rank, MPI_Comm comm);
+    void Initialise(int p, int rank, MPI_Comm comm);
     /**
      * @brief Used to iterate through time steps can call Advance()
      *
      */
     void Integrate();
-    void MPIIntegrate();
     /**
      * @brief Writes solution to output file
      *
      * @param file File name
      */
     void WriteSolution(std::string file);
-    void MPIWriteSolution(std::string file);
     /**
      * @brief Prints simulation data to the terminal
      *
@@ -104,10 +101,6 @@ private:
     double *vnew = nullptr;   /// Vorticity vector
     double *s = nullptr;   /// Stream function vector
     double *tmp = nullptr; /// Temporary vector
-    double *MPIv = nullptr;   /// Vorticity vector
-    double *MPIvnew = nullptr;   /// Vorticity vector
-    double *MPIs = nullptr;   /// Stream function vector
-    double *MPItmp = nullptr; /// Temporary vector
     prl::gridData* GRID = nullptr;
     double dt = 0.01; /// Time step
     double T = 1.0;   /// Final Time
