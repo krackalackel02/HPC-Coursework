@@ -1,6 +1,6 @@
 #include "../../include/SolverCG.h"
 #include "../../include/LidDrivenCavity.h"
-#include "../../include/Test.h"
+#include "../../include/MyTest.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <cmath>
