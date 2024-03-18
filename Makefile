@@ -40,7 +40,7 @@ SOLVER_FILE = LidDrivenCavitySolver
 # main solver final executable name
 SOLVER_OUT_NAME = solver
 # main test file name.cpp
-TEST_FILE = Test
+TEST_FILE = UnitTest
 # main test final executable name
 TEST_OUT_NAME = unit-tests
 # phony target to build all main files and any other desired "main" files
