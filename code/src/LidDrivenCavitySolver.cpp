@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 		// Obtain and print thread id
 		ThreadID = omp_get_thread_num();
 		// Only master thread does this
-		if (ThreadID == 0)
+		if (ThreadID == 0&&world_rank==0)
 		{
 			ThreadNum = omp_get_num_threads();
 			cout << "Number of threads = " << ThreadNum << endl;

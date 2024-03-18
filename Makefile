@@ -11,7 +11,7 @@ INC_DIR = code/include
 # compiler
 CC = mpicxx -fopenmp
 PROCS = 36
-THREADS = 1
+THREADS = 10
 # runner
 RUN = mpiexec -np $(PROCS)
 # optimisation
@@ -27,7 +27,7 @@ MAIN_LIBS = blas boost_program_options
 # append -l to each
 MAIN_LIB_FLAGS = $(foreach d,$(MAIN_LIBS),-l$(d))
 # libaries used by test suite
-TEST_LIBS = blas
+TEST_LIBS = blas boost_program_options
 # append -l to each
 TEST_LIB_FLAGS = $(foreach d,$(TEST_LIBS),-l$(d))
 # main solver file name.cpp
@@ -96,7 +96,7 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 default: required_dir solver
 
 dev: required_dir solver unittests
-	$(RUN) $(BIN_DIR)/$(TEST_OUT_NAME)
+	$(RUN) $(BIN_DIR)/$(TEST_OUT_NAME) --nt $(THREADS)
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
