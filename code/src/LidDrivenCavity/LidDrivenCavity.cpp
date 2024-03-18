@@ -136,21 +136,14 @@ void LidDrivenCavity::Integrate()
 {
     /// number of timesteps
     int NSteps = ceil(T / dt);
-    // NSteps=10;
     for (int t = 0; t < NSteps; ++t)
     {
         if (GRID->getCenter() == 0)
             std::cout << "Step: " << setw(8) << t
                       << "  Time: " << setw(8) << t * dt
                       << std::endl;
-        // Advance();
         Advance();
     }
-    // if(GRID->getCenter()==0)prl::PrintRowMatrix(Nx,Ny,s);
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter());
-    // std::cout<<"Rank "<<GRID->getCenter()<<":\n"<<std::endl;
-    // prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,s);
 }
 /**
  * @brief Writes out simulation data to output file with tabulated properties |x|y|omega|psi|xu|v|
@@ -178,6 +171,7 @@ void LidDrivenCavity::WriteSolution(std::string file)
     double *MPIu0 = new double[size]();
     double *MPIu1 = new double[size]();
     GRID->exchangeGhost(s);
+    #pragma omp parallel for schedule(static) collapse(2)
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
@@ -192,6 +186,7 @@ void LidDrivenCavity::WriteSolution(std::string file)
     GRID->edgeZero(s);
     if (wallTop)
     {
+        #pragma omp parallel for schedule(static) 
         for (int i = 0; i < Chunkx; ++i)
         {
             /// freestream velocity
@@ -210,7 +205,6 @@ void LidDrivenCavity::WriteSolution(std::string file)
         f.close();
     }
     std::stringstream ss; // stringstream to collect data
-
     for (int i = 0; i < Nx; ++i)
     {
         for (int j = Ny - 1; j >= 0; --j)
@@ -221,13 +215,10 @@ void LidDrivenCavity::WriteSolution(std::string file)
                 std::ofstream f(file.c_str(), std::ios::app);
                 ss.str(""); // Clear the contents of the stringstream
                 ss.clear(); // Reset any error flags
-                // cout << "Rank " << GRID->getCenter() << endl;
                 currCoord[0] = i;
                 currCoord[1] = j;
-                // ss << "Coord (" << currCoord[0] << "," << currCoord[1] << ")" << endl;
                 GRID->glo2loc(currCoord, currCoord);
                 // array index of coordinates
-                // cout << "Coord (" << currCoord[0] << "," << currCoord[1] << ")" << endl;
                 k = LOCIDX(currCoord[0], currCoord[1]);
                 x = i * dx;
                 y = (Ny - 1 - j) * dy;
@@ -244,24 +235,6 @@ void LidDrivenCavity::WriteSolution(std::string file)
             f.close();
         }
     }
-    // std::ostringstream oss;
-    // oss << file << GRID->getCenter();
-    // std::string filename = oss.str();
-    // std::ofstream f(filename.c_str());
-    // for (int i = 0; i < Chunkx; ++i)
-    // {
-    //     for (int j = 0; j < Chunky; ++j)
-    //     {
-    //         /// array index of coordinates
-    //         k = LOCIDX(i, j);
-    //         /// printing: |x|y|omega|psi|xu|v|
-    //         f << (start[0]+i) * dx << " " <<(start[1]+j) * dy << " " << v[k] << " " << s[k]
-    //           << " " << MPIu0[k] << " " << MPIu1[k] << std::endl;
-    //     }
-    //     f << std::endl;
-    // }
-
-    // free-up memory
     delete[] u0;
     delete[] u1;
     delete[] MPIu0;
@@ -331,6 +304,7 @@ void LidDrivenCavity::Advance()
     // Boundary node vorticity - Obtained using equations 6-9 on "brief.pdf"
     if (wallTop)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
         {
             v[LOCIDX(i, 0)] = 2.0 * dy2i * (s[LOCIDX(i, 0)] - s[LOCIDX(i, 1)]) - 2.0 * dyi * U;
@@ -338,6 +312,7 @@ void LidDrivenCavity::Advance()
     }
     if (wallBottom)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
         {
             v[LOCIDX(i, Chunky - 1)] = 2.0 * dy2i * (s[LOCIDX(i, Chunky - 1)] - s[LOCIDX(i, Chunky - 2)]);
@@ -345,6 +320,7 @@ void LidDrivenCavity::Advance()
     }
     if (wallLeft)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
         {
             v[LOCIDX(0, j)] = 2.0 * dx2i * (s[LOCIDX(0, j)] - s[LOCIDX(1, j)]);
@@ -352,18 +328,14 @@ void LidDrivenCavity::Advance()
     }
     if (wallRight)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
         {
             v[LOCIDX(Chunkx - 1, j)] = 2.0 * dx2i * (s[LOCIDX(Chunkx - 1, j)] - s[LOCIDX(Chunkx - 2, j)]);
         }
     }
-    //         MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(2);
-    // cout << "Rank "<<GRID->getCenter()<<" s\n" << endl;
-    // prl::PrintRowMatrix(Chunkx+2,Chunky+2,s);
-    // GRID->edgeZero(s);
-    // GRID->exchangeGhost(s);
     // Compute interior vorticity - Obtained using equations 10 on "brief.pdf"
+    #pragma omp parallel for schedule(static) collapse(2)
     for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
     {
         for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
@@ -371,12 +343,9 @@ void LidDrivenCavity::Advance()
             v[LOCIDX(i, j)] = dx2i * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) + 1.0 / dy / dy * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]);
         }
     }
-    //         MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(2);
-    // cout << "Rank "<<GRID->getCenter()<<" v\n" << endl;
-    // prl::PrintRowMatrix(Chunkx+2,Chunky+2,v);
     GRID->exchangeGhost(v);
-    // // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
+    // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
+    #pragma omp parallel for schedule(static) collapse(2)
     for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
     {
         for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
@@ -384,17 +353,9 @@ void LidDrivenCavity::Advance()
             vnew[LOCIDX(i, j)] = v[LOCIDX(i, j)] + dt * (((s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) * 0.5 * dxi * (v[LOCIDX(i, j - 1)] - v[LOCIDX(i, j + 1)]) * 0.5 * dyi) - ((s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]) * 0.5 * dyi * (v[LOCIDX(i + 1, j)] - v[LOCIDX(i - 1, j)]) * 0.5 * dxi) + nu * (v[LOCIDX(i + 1, j)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i - 1, j)]) * dx2i + nu * (v[LOCIDX(i, j - 1)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i, j + 1)]) * dy2i);
         }
     }
+    cg->Solve(vnew, s, GRID);
     delete[] start;
     delete[] stop;
-    // GRID->edgeZero(v);
-    // GRID->edgeZero(vnew);
-    // GRID->edgeZero(s);
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(2+GRID->getCenter());
-    // cout << "Rank "<<GRID->getCenter()<<" vnew\n" << endl;
-    // prl::PrintRowMatrix(Chunkx+2,Chunky+2,vnew);
-    cg->Solve(vnew, s, GRID);
-    // GRID->edgeZero(s);
 }
 void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
 {
@@ -405,41 +366,11 @@ void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
     GRID->getCartCoord(cartCoord);
     GRID->getStart(start);
     GRID->getStop(stop);
-    // prl::debug(rank, "CARTCOORD: (%2d,%2d)\n", cartCoord[0], cartCoord[1]);
-    // prl::debug(rank, "START: (%2d,%2d)\n", start[0], start[1]);
-    // prl::debug(rank, "STOP: (%2d,%2d)\n", stop[0], stop[1]);
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::debug(rank, "   %2d\n", GRID->getUp());
-    // prl::debug(rank, "%2d %2d %2d\n", GRID->getLeft(), GRID->getCenter(), GRID->getRight());
-    // prl::debug(rank, "   %2d\n", GRID->getDown());
     int size = (GRID->getChunky() + 2) * (GRID->getChunkx() + 2);
-    double fill = 0.0;
-    if (rank == 1 || rank == p)
-        fill = 1.0;
     v = new double[size]();
     vnew = new double[size]();
     tmp = new double[size]();
     s = new double[size]();
-    // for (int i=0; i < size; ++i) {
-
-    //     v[i]+=fill;
-    //     s[i]+=fill;
-    //     tmp[i]+=fill;
-
-    // }
-    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,v);
-    // GRID->exchangeGhost(v,{{"msg", "Checking init exchg"}});
-    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,v);
-    // for (int i=0; i < size; ++i) {
-
-    //     v[i]+=fill;
-    //     s[i]+=fill;
-    //     tmp[i]+=fill;
-
-    // }
-    // GRID->exchangeGhost(v,{{"msg", "Checking init exchg"}});
-    // if(rank==0)prl::PrintRowMatrix(GRID->getChunkx()+2,GRID->getChunky()+2,v);
-    // Advance();
 }
 
 /**
@@ -453,7 +384,6 @@ void LidDrivenCavity::CleanUp()
     {
 
         delete GRID;
-        // cout << "about to delete GRID" << endl;
         // Stop double deletion
         GRID = nullptr;
         delete[] v;

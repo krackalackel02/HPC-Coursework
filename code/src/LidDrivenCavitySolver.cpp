@@ -11,17 +11,23 @@
 #include <iostream>
 #include <mpi.h>
 #include "../include/LidDrivenCavity.h"
-#include "../include/ParallelFunc.h"
-#include "../include/Test.h"
 #include <cmath>
 #include <boost/program_options.hpp>
+#include <boost/timer/timer.hpp>
 #include <omp.h>
 
 using namespace std;
 namespace po = boost::program_options;
-
+double measureExecutionTime(boost::timer::cpu_timer& timer, std::function<void()> function) {
+    timer.start();
+    function();
+    timer.stop();
+    return timer.elapsed().wall * 1e-9; // Convert to seconds
+}
 int main(int argc, char *argv[])
 {
+    // Start the timer
+    boost::timer::cpu_timer timer;
     int world_rank = 0;
     int world_size = 0;
 
@@ -143,15 +149,15 @@ int main(int argc, char *argv[])
 
     if(world_rank==0)solver->PrintConfiguration();
 
-    solver->Initialise(world_p,world_rank,cartComm);
-    solver->WriteSolution("output/ic.txt");
+    double initTimeSeconds = measureExecutionTime(timer, [&]() { solver->Initialise(world_p, world_rank, cartComm); });
+    double writeICTimeSeconds = measureExecutionTime(timer, [&]() { solver->WriteSolution("output/ic.txt"); });
+    double integTimeSeconds = measureExecutionTime(timer, [&]() { solver->Integrate(); });
+    double writeSOLTimeSeconds = measureExecutionTime(timer, [&]() { solver->WriteSolution("output/final.txt"); });
 
-    solver->Integrate();
-
-    solver->WriteSolution("output/final.txt");
+    if(world_rank==0)printf("Initialising: %6fs WriteIC: %6fs Integrate: %6fs WriteSOL: %6fs\n",initTimeSeconds,writeICTimeSeconds,integTimeSeconds,writeSOLTimeSeconds);
+    if(world_rank==0)printf("Total: %6fs\n",(initTimeSeconds+writeICTimeSeconds+integTimeSeconds+writeSOLTimeSeconds));
 
     delete solver;
-    
     MPI_Comm_free(&cartComm);
     MPI_Finalize();
 	return 0;

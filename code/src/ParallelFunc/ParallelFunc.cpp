@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string>
 #include <unordered_map>
+#include <omp.h>
 
 prl::gridData::gridData(int init_Nx, int init_Ny, int init_world_p, int init_world_rank, MPI_Comm init_cartComm)
 {
@@ -222,18 +223,22 @@ void prl::gridData::exchangeGhost(double *data,const std::unordered_map<std::str
     
 }
 void prl::gridData::edgeZero(double* data){
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < Chunkx+2; ++i)
     {
         data[EXCHGIDX(i, 0)] = 0.0;
     }
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < Chunkx+2; ++i)
     {
         data[EXCHGIDX(i, Chunky+1)] = 0.0;
     }
+    #pragma omp parallel for schedule(static)
     for (int j = 0; j < Chunky+2; ++j)
     {
         data[EXCHGIDX(0,j)] = 0.0;
     }
+    #pragma omp parallel for schedule(static)
     for (int j = 0; j < Chunky+2; ++j)
     {
         data[EXCHGIDX(Chunkx+1,j)] = 0.0;

@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 #include <unistd.h>
+
+
 #define EXCHGIDX(I, J) ((J) * (Chunkx+2) + (I))
 #define LOCIDX(I, J) EXCHGIDX(I+1,J+1)
 namespace prl
@@ -68,5 +70,4 @@ namespace prl
     void PrintColMatrix(int m, int n, double *H);
     void PrintRowMatrix(int m, int n, double *H);
     void time(int n);
-
 }
