@@ -87,8 +87,8 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 		default \
 		solver \
 		unittests \
-		required_dir
-
+        required_dir \
+        tree
 
 
 # ensuring directory required for build process are instantiated
@@ -253,3 +253,14 @@ git-log:
 	git log --name-status > repository.log
 	make git-commit MSG="Updated Log"
 	make git-push
+tree:
+ifndef T
+	git log --graph --oneline --decorate --all
+else
+endif
+ifeq ($(T),1)
+	git log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)' --all
+endif
+ifeq ($(T),2)
+	git log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+endif
