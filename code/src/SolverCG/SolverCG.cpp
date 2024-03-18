@@ -40,7 +40,6 @@ SolverCG::SolverCG(int pNx, int pNy, double pdx, double pdy,prl::gridData* GRID)
     dy = pdy;
     Nx = pNx;
     Ny = pNy;
-    int n = Nx*Ny;
     int Chunkx = GRID->getChunkx();
     int Chunky = GRID->getChunky();
     int size = (Chunky + 2) * (Chunkx + 2);
@@ -97,58 +96,55 @@ void SolverCG::Solve(double* b, double* x,prl::gridData* GRID) {
     /// Print out current error, calculated using norm-2
     loceps=0.0;
     GRID->edgeZero(b);
-    loceps = cblas_dnrm2(n, b, 1);
+
+    // Instead of  cblas_dnrm2(n, b, 1);
+    #pragma omp parallel for schedule(static)reduction(+:loceps)
+    for (unsigned int i = 0; i < n; ++i) {
+        loceps += b[i] * b[i];
+    }
+    loceps = sqrt(loceps);
     MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    eps = sqrt(eps);
+
     if (eps < tol*tol) {
-        std::fill(x, x+n, 0.0);
+        // Instead of   std::fill(x, x+n, 0.0);
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            x[i] = 0.0;
+        }
         if(GRID->getCenter()==0)cout << "Norm is " << eps << endl;
         return;
     }
 
     /// Initialise conjugate gradient algorithm with correct states and boundary conditions.
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "X RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,x);
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "B RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,b);
-
     ApplyOperator(x, t,GRID);
-    
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "T RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,t);
 
-    cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
+    // Instead of cblas_dcopy
+    #pragma omp parallel for schedule(static)
+    for (unsigned int i = 0; i < n; ++i) {
+        r[i] = b[i];
+    }
+    // cblas_dcopy(n, b, 1, r, 1);        // r_0 = b (i.e. b)
 
     ImposeBC(r,GRID);
     
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "R RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,r);
+    // Instead of cblas_daxpy
+    #pragma omp parallel for schedule(static)
+    for (unsigned int i = 0; i < n; ++i) {
+        r[i] = r[i]-t[i];
+    }
+    // cblas_daxpy(n, -1.0, t, 1, r, 1);
 
-    cblas_daxpy(n, -1.0, t, 1, r, 1);
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "Z RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,z);
     
     /// solve for outer walls
     Precondition(r, z,GRID);
     
-    cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
+    // Instead of cblas_dcopy
+    #pragma omp parallel for schedule(static)
+    for (unsigned int i = 0; i < n; ++i) {
+        p[i] = z[i];
+    }
+    // cblas_dcopy(n, z, 1, p, 1);        // p_0 = r_0
 
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // prl::time(GRID->getCenter()*1.5);
-    // cout << "P RANK : "<<GRID->getCenter() << endl;
-    // prl::PrintRowMatrix(6,7,p);
 
     k = 0;
     /// Using conjugate gradient method to solve for new vorticity
@@ -157,44 +153,96 @@ void SolverCG::Solve(double* b, double* x,prl::gridData* GRID) {
         // Perform action of Nabla^2 * p
 
         ApplyOperator(p, t,GRID);
-        // if(k==1){ MPI_Barrier(MPI_COMM_WORLD);
-        // prl::time(GRID->getCenter()*1.5);
-        // cout << "T RANK : "<<GRID->getCenter() << endl;
-        // prl::PrintRowMatrix(6,7,t);}
 
-        localphaden = cblas_ddot(n, t, 1, p, 1);  // alpha = p_k^T A p_k
+        // Instead of localphaden = cblas_ddot(n, t, 1, p, 1);
+        localphaden = 0.0;
+        #pragma omp parallel for schedule(static)reduction(+:localphaden)
+        for (unsigned int i = 0; i < n; ++i) {
+            localphaden += p[i] * t[i];
+        }
+        // localphaden = cblas_ddot(n, t, 1, p, 1);  // alpha = p_k^T A p_k
         MPI_Allreduce(&localphaden,&alphaden,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        localphanum = cblas_ddot(n, r, 1, z, 1); // compute alpha_k
+
+        localphanum = 0.0;
+        // Instead of localphanum = cblas_ddot(n, r, 1, z, 1);
+        #pragma omp parallel for schedule(static)reduction(+:localphanum)
+        for (unsigned int i = 0; i < n; ++i) {
+            localphanum += r[i] * z[i];
+        }
+        // localphanum = cblas_ddot(n, r, 1, z, 1); // compute alpha_k
         MPI_Allreduce(&localphanum,&alphanum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
         alpha = alphanum/alphaden;
         // if(GRID->getCenter()==0&&k==1)cout << "MPI alpha: "<<alpha << endl;
 
-        locbetaden  = cblas_ddot(n, r, 1, z, 1);  // z_k^T r_k
+        // Instead of locbetaden  = cblas_ddot(n, r, 1, z, 1)
+        locbetaden = 0.0;
+        #pragma omp parallel for schedule(static)reduction(+:locbetaden)
+        for (unsigned int i = 0; i < n; ++i) {
+            locbetaden += r[i] * z[i];
+        }
+        // locbetaden  = cblas_ddot(n, r, 1, z, 1);  // z_k^T r_k
         MPI_Allreduce(&locbetaden,&betaden,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
-        cblas_daxpy(n,  alpha, p, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
-        cblas_daxpy(n, -alpha, t, 1, r, 1); // r_{k+1} = r_k - alpha_k A p_k
+        // Instead of cblas_daxpy
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            x[i] = x[i]+alpha*p[i]; 
+        }
+        // cblas_daxpy(n,  alpha, p, 1, x, 1);  // x_{k+1} = x_k + alpha_k p_k
+
+        // Instead of cblas_daxpy
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            r[i] = r[i]-alpha*t[i];
+        }
+        // cblas_daxpy(n, -alpha, t, 1, r, 1); // r_{k+1} = r_k - alpha_k A p_k
 
         loceps=0.0;
         GRID->edgeZero(r);
-    loceps = cblas_dnrm2(n, r, 1);
+        // Instead of  cblas_dnrm2(n, r, 1);
+        #pragma omp parallel for schedule(static)reduction(+:loceps)
+        for (unsigned int i = 0; i < n; ++i) {
+            loceps += r[i] * r[i];
+        }
+        loceps = sqrt(loceps);
         MPI_Allreduce(&loceps,&eps,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        // eps = sqrt(eps);
 
         if (eps < tol*tol) {
-            // cout << "ITerations: "<<k << endl;
-            // cout << "alpha: "<<alpha << endl;
             break;
         }
         Precondition(r, z,GRID);
-        locbetanum = cblas_ddot(n, r, 1, z, 1);
+
+        // Instead of locbetanum = cblas_ddot(n, r, 1, z, 1);
+        locbetanum = 0.0;
+        #pragma omp parallel for schedule(static)reduction(+:locbetanum)
+        for (unsigned int i = 0; i < n; ++i) {
+            locbetanum += r[i] * z[i];
+        }
+        // locbetanum = cblas_ddot(n, r, 1, z, 1);
         MPI_Allreduce(&locbetanum,&betanum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
         beta = betanum/betaden;
-        // if(GRID->getCenter()==0&&k==1)cout << "MPI beta: "<<beta << endl;
 
-        cblas_dcopy(n, z, 1, t, 1);
-        cblas_daxpy(n, beta, p, 1, t, 1);
-        cblas_dcopy(n, t, 1, p, 1);
+        // Instead of cblas_dcopy
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            t[i] = z[i];
+        }
+        // cblas_dcopy(n, z, 1, t, 1);
+
+        // Instead of cblas_daxpy
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            t[i] = t[i]+beta*p[i];
+        }
+        // cblas_daxpy(n, beta, p, 1, t, 1);
+
+        // Instead of cblas_dcopy
+        #pragma omp parallel for schedule(static)
+        for (unsigned int i = 0; i < n; ++i) {
+            p[i] = t[i];
+        }
+        // cblas_dcopy(n, t, 1, p, 1);
 
     } while (k < 5000); // Set a maximum number of iterations
 
@@ -227,7 +275,8 @@ void SolverCG::ApplyOperator(double* in, double* out,prl::gridData* GRID) {
     bool wallBottom = stop[1]==Ny-1;
     bool wallLeft = start[0]==0;
     bool wallRight = stop[0]==Nx-1;
-    // prl::debug(GRID->getCenter(),"at Wall TBLR %d%d%d%d",wallTop,wallBottom,wallLeft,wallRight);
+
+    #pragma omp parallel for schedule(static) collapse(2)
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
@@ -267,7 +316,7 @@ void SolverCG::Precondition(double* in, double* out,prl::gridData* GRID) {
     double dx2i = 1.0/dx/dx;
     double dy2i = 1.0/dy/dy;
     double factor = 2.0*(dx2i + dy2i);
-    // GRID->exchangeGhost(in);
+    #pragma omp parallel for schedule(static) collapse(2)
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
@@ -278,6 +327,7 @@ void SolverCG::Precondition(double* in, double* out,prl::gridData* GRID) {
     }
     if (wallTop)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < Chunkx; ++i)
         {
             out[LOCIDX(i, 0)] = in[LOCIDX(i, 0)];
@@ -285,6 +335,7 @@ void SolverCG::Precondition(double* in, double* out,prl::gridData* GRID) {
     }
     if (wallBottom)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < Chunkx; ++i)
         {
             out[LOCIDX(i, Chunky - 1)] = in[LOCIDX(i, Chunky - 1)];
@@ -292,6 +343,7 @@ void SolverCG::Precondition(double* in, double* out,prl::gridData* GRID) {
     }
     if (wallLeft)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = 0; j < Chunky; ++j)
         {
             out[LOCIDX(0, j)] = in[LOCIDX(0,j)];
@@ -299,6 +351,7 @@ void SolverCG::Precondition(double* in, double* out,prl::gridData* GRID) {
     }
     if (wallRight)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = 0; j < Chunky; ++j)
         {
             out[LOCIDX(Chunkx - 1, j)] = in[LOCIDX(Chunkx - 1, j)];
@@ -326,6 +379,7 @@ void SolverCG::ImposeBC(double* inout,prl::gridData* GRID) {
     // Boundaries
     if (wallTop)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < Chunkx; ++i)
         {
             inout[LOCIDX(i, 0)] = 0.0;
@@ -333,6 +387,7 @@ void SolverCG::ImposeBC(double* inout,prl::gridData* GRID) {
     }
     if (wallBottom)
     {
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < Chunkx; ++i)
         {
             inout[LOCIDX(i, Chunky - 1)] = 0.0;
@@ -340,6 +395,7 @@ void SolverCG::ImposeBC(double* inout,prl::gridData* GRID) {
     }
     if (wallLeft)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = 0; j < Chunky; ++j)
         {
             inout[LOCIDX(0, j)] = 0.0;
@@ -347,6 +403,7 @@ void SolverCG::ImposeBC(double* inout,prl::gridData* GRID) {
     }
     if (wallRight)
     {
+        #pragma omp parallel for schedule(static)
         for (int j = 0; j < Chunky; ++j)
         {
             inout[LOCIDX(Chunkx - 1, j)] = 0.0;

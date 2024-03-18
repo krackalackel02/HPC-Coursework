@@ -11,7 +11,7 @@ INC_DIR = code/include
 # compiler
 CC = mpicxx -fopenmp
 PROCS = 4
-THREADS = 60
+THREADS = 4
 # runner
 RUN = mpiexec
 # optimisation
@@ -23,7 +23,7 @@ CFLAGS = -Wall -Wextra -g $(foreach d,$(INC_DIR),-I$(d)) $(OPT) $(DEPFLAGS)
 # Complete L flags used in compilation
 LFLAGS = -Wall -Wextra -g
 # libraries utilised by main "solver"
-MAIN_LIBS = blas boost_program_options
+MAIN_LIBS = blas boost_program_options boost_timer
 # append -l to each
 MAIN_LIB_FLAGS = $(foreach d,$(MAIN_LIBS),-l$(d))
 # libaries used by test suite
@@ -95,11 +95,12 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 # ensuring directory required for build process are instantiated
 default: required_dir solver
 	export OMP_NUM_THREADS=$(THREADS)
-	$(RUN) -np $(PROCS) $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	$(RUN) -np $(PROCS) $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt $(THREADS)
 
 dev: required_dir solver unittests
 	export OMP_NUM_THREADS=$(THREADS)
 	$(RUN) -np $(PROCS) $(BIN_DIR)/$(TEST_OUT_NAME)
+	$(RUN) -np $(PROCS) $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt $(THREADS)
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
@@ -137,7 +138,7 @@ solver:required_dir $(BUILD_DIR)/$(SOLVER_FILE).o $(MAIN_OBJ_FILES)
 	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
 	@echo "-------------------------------\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) -nt *num threads*\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt *num threads*\"\n"
 
 # main "test" executable
 unittests:required_dir $(BUILD_DIR)/$(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
@@ -156,7 +157,7 @@ $(filter %$(SOLVER_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
 	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
 	@echo "-------------------------------\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) -nt *num threads*\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt *num threads*\"\n"
 
 # filters main "test" from TARGETS as special output name and libs needed
 $(filter %$(TEST_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
