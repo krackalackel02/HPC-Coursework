@@ -3,6 +3,8 @@
 #include <iostream>
 #include <mpi.h>
 #include <omp.h>
+#include <cmath>
+
 // ... BEFORE including the Boost test header
 #define BOOST_TEST_MODULE Solver_and_Cavity_Test_Suite
 #include <boost/test/included/unit_test.hpp>
@@ -41,13 +43,15 @@ MPIFixture::MPIFixture()
 
     
     int ThreadNum,ThreadID;
+    int DEFAULT_ThreadNum = 1;
     char *env_var = getenv("OMP_NUM_THREADS");
     if (env_var != NULL) {
         ThreadNum = atoi(env_var); // Convert string to integer
     } else {
+        ThreadNum = DEFAULT_ThreadNum;
         printf("OMP_NUM_THREADS is not set. Using default number of threads.\nSet env variable with \"export OMP_NUM_THREADS=4\"\n");
     }
-    omp_set_num_threads(ThreadNum);
+    omp_set_num_threads(std::min(ThreadNum,omp_get_max_threads()));
     // Get the rank and comm size on each process.
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);

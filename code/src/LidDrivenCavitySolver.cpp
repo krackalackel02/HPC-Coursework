@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     }
     
     MPI_Comm cartComm;
-    int Nx,Ny,ThreadNum,DEFAULT_ThreadNum,ThreadID;
+    int Nx,Ny,ThreadNum,ThreadID;
     double Lx,Ly,dt,T,Re;
     int world_p = (int)sqrt(world_size);
     if(world_rank==0)cout << "P: "<<world_p << endl;
@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 	
 	char *env_var = getenv("OMP_NUM_THREADS");
     if (env_var != NULL) {
-        DEFAULT_ThreadNum = atoi(env_var); // Convert string to integer
+        ThreadNum = atoi(env_var); // Convert string to integer
     } else {
-		DEFAULT_ThreadNum=1;
+		ThreadNum=1;
         printf("OMP_NUM_THREADS is not set. Using default number of threads.\nSet env variable with \"export OMP_NUM_THREADS=4\"\n");
     }
 
@@ -96,8 +96,6 @@ int main(int argc, char *argv[])
                 "Final time.")
         ("Re",  po::value<double>()->default_value(10),
                 "Reynolds number.")
-        ("nt",  po::value<int>()->default_value(DEFAULT_ThreadNum),
-                "OpenMP Threads.")
         ("verbose",    "Be more verbose.")
         ("help",       "Print help message.");
 
@@ -112,9 +110,8 @@ int main(int argc, char *argv[])
     dt = vm["dt"].as<double>();
     T = vm["T"].as<double>();
     Re = vm["Re"].as<double>();
-    ThreadNum = vm["nt"].as<int>();
     
-    omp_set_num_threads(min(ThreadNum,omp_get_max_threads()));
+    omp_set_num_threads(std::min(ThreadNum,omp_get_max_threads()));
         
     if (world_p>Nx||world_p>Ny)
     {

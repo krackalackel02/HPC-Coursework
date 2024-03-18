@@ -10,8 +10,13 @@ OUTPUT_DIR = output
 INC_DIR = code/include
 # compiler
 CC = mpicxx -fopenmp
-PROCS = 4
-THREADS = 4
+ifndef NP
+NP = 4
+endif
+
+ifndef NT
+NT = 4
+endif
 # runner
 RUN = mpiexec
 # optimisation
@@ -67,7 +72,7 @@ TEST_OBJ_FILES = $(patsubst %, $(BUILD_DIR)/%,$(TEST_CFILES:.cpp=.o))
 DEP_FILES = $(MAIN_SRC_FILES:.cpp=.d) $(TEST_SRC_FILES:.cpp=.d)
 
 # set default build to be for main solver executable
-.DEFAULT_GOAL = dev
+.DEFAULT_GOAL = default
 # include path for Makefile auto dependancy tracking
 -include $(patsubst %, $(BUILD_DIR)/%,$(DEP_FILES))
 
@@ -94,13 +99,18 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 
 # ensuring directory required for build process are instantiated
 default: required_dir solver
-	export OMP_NUM_THREADS=$(THREADS)
-	$(RUN) -np $(PROCS) $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt $(THREADS)
-
+# rule to build and run main solver with set threads and procs
+runsolver: required_dir solver
+	export OMP_NUM_THREADS=$(shell echo $(NT));\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME);\
+# rule to build and run unittests with set threads and procs
+rununittests: required_dir unittests
+	export OMP_NUM_THREADS=$(shell echo $(NT));\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME);
 dev: required_dir solver unittests
-	export OMP_NUM_THREADS=$(THREADS)
-	$(RUN) -np $(PROCS) $(BIN_DIR)/$(TEST_OUT_NAME)
-	$(RUN) -np $(PROCS) $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt $(THREADS)
+	export OMP_NUM_THREADS=$(shell echo $(NT));\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME);\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME);
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
