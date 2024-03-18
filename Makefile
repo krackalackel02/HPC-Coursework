@@ -9,10 +9,11 @@ OUTPUT_DIR = output
 # include directory for location of headers
 INC_DIR = code/include
 # compiler
-CC = mpicxx
-THREADS = 16
+CC = mpicxx -fopenmp
+PROCS = 36
+THREADS = 10
 # runner
-RUN = mpiexec -np $(THREADS)
+RUN = mpiexec -np $(PROCS)
 # optimisation
 OPT = -O2
 # Dependancy uto generation
@@ -26,7 +27,7 @@ MAIN_LIBS = blas boost_program_options
 # append -l to each
 MAIN_LIB_FLAGS = $(foreach d,$(MAIN_LIBS),-l$(d))
 # libaries used by test suite
-TEST_LIBS = blas
+TEST_LIBS = blas boost_program_options
 # append -l to each
 TEST_LIB_FLAGS = $(foreach d,$(TEST_LIBS),-l$(d))
 # main solver file name.cpp
@@ -95,7 +96,7 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 default: required_dir solver
 
 dev: required_dir solver unittests
-	$(RUN) $(BIN_DIR)/$(TEST_OUT_NAME)
+	$(RUN) $(BIN_DIR)/$(TEST_OUT_NAME) --nt $(THREADS)
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
@@ -241,12 +242,12 @@ git-commit:
 ifndef MSG
 	$(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
 else
-	git checkout main
+	git checkout omp
 	git add .
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push origin main --tags
+	git push origin omp --tags
 git-publish-docs:
 	git subtree push --prefix docs/html origin gh-pages
 git-log:

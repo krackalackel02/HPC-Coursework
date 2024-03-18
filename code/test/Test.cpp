@@ -2,10 +2,12 @@
 #include <cblas.h>
 #include <iostream>
 #include <mpi.h>
-
-#define BOOST_TEST_MODULE Solver_and_Cavity_Test_Suite
-
+#include <omp.h>
+#include <boost/program_options.hpp>
+#include <omp.h>
+namespace po = boost::program_options;
 // ... BEFORE including the Boost test header
+#define BOOST_TEST_MODULE Solver_and_Cavity_Test_Suite
 #include <boost/test/included/unit_test.hpp>
 
 // Function to compare numerical and analytical solutions (if available)
@@ -40,14 +42,27 @@ MPIFixture::MPIFixture()
         BOOST_FAIL(msg);
     }
 
+    po::options_description opts(
+        "Solver for the 2D lid-driven cavity incompressible flow problem");
+    opts.add_options()
+        ("nt",  po::value<int>()->default_value(1),
+                "OpenMP Threads.")
+        ("verbose",    "Be more verbose.")
+        ("help",       "Print help message.");
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, opts), vm);
+    po::notify(vm);
+    int ThreadNum,ThreadID;
+    ThreadNum = vm["nt"].as<int>();
     // Get the rank and comm size on each process.
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-    if (world_size < 1 || world_size > 16)
+    omp_set_num_threads((omp_get_max_threads()>ThreadNum?ThreadNum:omp_get_max_threads()));
+    if (world_size < 1)
     {
 
-        msg = "ERROR use between 1 and 16 process";
+        msg = "ERROR use at least 1 process";
         BOOST_FAIL(msg);
     }
     if (sqrt(world_size) != floor(sqrt(world_size)))
@@ -62,6 +77,18 @@ MPIFixture::MPIFixture()
         BOOST_FAIL(msg);
     }
     if (world_rank == 0) std::cout << "P: " << floor(sqrt(world_size)) << std::endl;
+    #pragma omp parallel private(ThreadID)
+	{
+		// Obtain and print thread id
+		ThreadID = omp_get_thread_num();
+		// Only master thread does this
+		if (ThreadID == 0&&world_rank==0)
+		{
+			ThreadNum = omp_get_num_threads();
+			std::cout << "Number of threads = " << ThreadNum << std::endl;
+		}
+	} // All threads join master thread and terminate
+    
 
 }
 

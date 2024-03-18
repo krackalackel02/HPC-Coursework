@@ -1,209 +1,384 @@
-commit 41d10d1aece5b8cd046ee0bd24e93da8f8be5b5c
+commit d6d9549156054930f3dff9db3c92efeb13569709
 Author: Paul Kallarackel <paulkallarackel@gmail.com>
-Date:   Wed Feb 28 22:26:04 2024 +0000
+Date:   Mon Mar 18 15:02:35 2024 +0000
 
-    Updated Log
+    working openmp initialisation with flag at terminal for running
 
-M	repository.log
+M	Makefile
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/test/Test.cpp
 
-commit 446926f8da1042e1982634e693b740574ef7b334
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 22:16:34 2024 +0000
+commit 6b33cec395939fdda64928c3f5f8d7386af7ba40
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 14:07:32 2024 +0000
 
-    Updated Log
+    update git script with omp branc h
 
-M	repository.log
+M	Makefile
 
-commit e7e9ebd92dbfc8589eddbe5dcfed68a09ce0ab8c
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 22:16:09 2024 +0000
+commit b9c6c579c83f4cb1a9477365b8df131007e8b618
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 14:01:39 2024 +0000
 
-    Fixed output name to solver and added more info into markdown regarding main files and git scripts
+    removed e8d4a958216d895c17e91d6df89235582b123dbb file
+
+D	e8d4a958216d895c17e91d6df89235582b123dbb
+
+commit dd5c2aee7a73b2764cdcd0d8607d23387f246aac
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 13:52:38 2024 +0000
+
+    Updated Git Script Makefile
+    
+    Made it such that now commits and pushes to main
+
+M	Makefile
+
+commit ec7d2c399b5aaf7d710cd575beb4157963574736
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 00:07:14 2024 +0000
+
+    Implemented "make tree" script to visualise git history
+
+M	Makefile
+A	e8d4a958216d895c17e91d6df89235582b123dbb
+
+commit 9e965cdc4ab746287d197221731d9a48341ac0ea
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sun Mar 17 23:21:39 2024 +0000
+
+    Updated Readme.MD
+
+M	README.md
+
+commit 9ed0668cbab50e51ba5bf0155c1a513ff209d7e5
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sun Mar 17 23:05:16 2024 +0000
+
+    Renamed Variables and function calls back to original naming scheme: MPIv -> v etc.
+
+M	code/include/LidDrivenCavity.h
+M	code/include/SolverCG.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/SolverCG/SolverCG.cpp
+M	code/test/LidDrivenCavity/LidDrivenCavityTest.cpp
+M	code/test/SolverCG/SolverCGTest.cpp
+
+commit 54c5e6006cdf8ca430c4256e25e1692e64b1d351
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sun Mar 17 22:52:25 2024 +0000
+
+    Implemented Parallel Unit Test for printconfig() writesolution() zerosolver()
+
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/SolverCG/SolverCG.cpp
+M	code/test/LidDrivenCavity/LidDrivenCavityTest.cpp
+M	code/test/SolverCG/SolverCGTest.cpp
+M	code/test/Test.cpp
+
+commit 7f640edeb59d7ed5f50fe875528c1a2a5bc35578
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sun Mar 17 20:47:58 2024 +0000
+
+    Implemented Parallel Analytical SolverCG Test
+    
+    working analytical solve test
+
+M	Makefile
+M	code/include/LidDrivenCavity.h
+M	code/include/Test.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/SolverCG/SolverCG.cpp
+M	code/test/SolverCG/SolverCGTest.cpp
+M	code/test/Test.cpp
+
+commit b5f3f0092be4b935e388409c523aa277af975ae0
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sat Mar 16 15:56:31 2024 +0000
+
+    Updated Parallel Printing to work in order and only iterate through chunk
+
+M	Makefile
+M	code/include/LidDrivenCavity.h
+M	code/include/ParallelFunc.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+M	code/src/SolverCG/SolverCG.cpp
+
+commit 769ad015601d0d4977d3f1dd022cf36780614932
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sat Mar 16 03:00:58 2024 +0000
+
+    Updated Advance function to work in correct ocordinates e.g. j-1 -> j+1
+    Started working on parallel printing
+
+M	code/include/LidDrivenCavity.h
+M	code/include/ParallelFunc.h
+M	code/include/SolverCG.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+M	code/src/SolverCG/SolverCG.cpp
+
+commit 2a2d8f299e48294b6dca0ff273855d07dd6c2a4f
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 15 19:00:27 2024 +0000
+
+    Changed exchangeGhost() to work with Irecv and Isend
+
+M	code/include/ParallelFunc.h
+M	code/include/SolverCG.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+M	code/src/SolverCG/SolverCG.cpp
+
+commit a4229460c0ee46431e69fda07204b9d6aa185a17
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Tue Mar 12 23:15:58 2024 +0000
+
+    Implemented MPIAdvance()
+    
+    Note: need to do solve, need to add newV solution from ed
+
+M	code/include/ParallelFunc.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+
+commit cd4992943a9e448b785904952495bb698b110c6d
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sat Mar 9 22:54:58 2024 +0000
+
+    Implemented successful exchange of any local datatype to neighbours
+    
+    implemented internal cart function made solver run in parallel without error. Implemented exchange of data function. need to add new data variable and figure out distro of data now that coordinates distro is done
+    
+    Implemented successful exchange of vorticity between neighbour ranks
 
 M	Makefile
 M	README.md
 M	code/include/LidDrivenCavity.h
-M	docs/html/LidDrivenCavity_8h_source.html
-M	docs/html/annotated.html
-M	docs/html/classLidDrivenCavity.html
-M	docs/html/index.html
-M	repository.log
+M	code/include/ParallelFunc.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+M	code/src/SolverCG/SolverCG.cpp
 
-commit b50781fc66c8863a739fdf66d04e118e8e3ac58e
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 19:43:56 2024 +0000
+commit a38fa8734a57e4c109e0e5076abafe4c80388bca
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Sat Mar 9 15:57:13 2024 +0000
 
-    Updated Log
+    Implemented Cartesian Grid and Distribution
+    
+    note: Distributes Nx * Ny grid points among ranks efficiently
+    
+    first working domain distro with mpi. use any nx and ny with swuare prop to distro into cart grid in efficient load balance
+    
+    altered push to current upstream
 
 M	Makefile
-A	repository.log
+M	README.md
+A	code/include/ParallelFunc.h
+M	code/src/LidDrivenCavitySolver.cpp
+A	code/src/ParallelFunc/ParallelFunc.cpp
 
-commit 42f3898d269b73dceddb760740d309ecccd7e7b5
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 19:22:32 2024 +0000
+commit 785a9ba298bf8adff151071611479f7986ce9120
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 8 20:01:09 2024 +0000
 
-    fixed link to online docs on readme
+    Clean up repo for MPI and Implement ED FIX 118
+    
+    clean up project in prep for MPI
+    
+    Updated fixed from ED post 118 and renamed test vector
+    
+    clean up project in prep for MPI
+    
+    Updated with fixes for temporary vector form ED
+    
+    ed fix post 118
+    
+    updated test vector name
+
+M	Makefile
+M	code/include/LidDrivenCavity.h
+M	code/include/SolverCG.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/SolverCG/SolverCG.cpp
+M	code/test/SolverCG/SolverCGTest.cpp
+
+commit 31a45d07a6370c2a8dd5ac80c741804ea9dd16f7
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 8 12:53:59 2024 +0000
+
+    Fixed dependancy file generation with Make
+    
+    Note: changes to header files result in rebuilds of objects
+    
+    fixed .d file auto obj geneartion based off header change and also fixed makefile appropiatley. tested for fresh build. cpp change and header change.
+    
+    removed any accidental files from last push
+    
+    removed any accidental files from last push
 
 M	Makefile
 M	README.md
 
-commit e972fed22a76b045732ec60347df1c33ba646769
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 19:08:38 2024 +0000
+commit 9816ca6a2c8c3e455c1b9e3da7969e5596fd5866
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Thu Mar 7 19:17:46 2024 +0000
 
-    this added commit and gh page publish to repo
-
-M	Makefile
-
-commit 5a1a82173aa9f24dfcd10ca61869b3cd72433ea3
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 19:00:55 2024 +0000
-
-    added subtree command for gh-pages publishing
+    Separated Test Files
+    
+    Note: using main Test.cpp and diff test suites for separation of concerns
 
 M	Makefile
+A	code/include/Test.h
+R057	code/test/test.cpp	code/test/LidDrivenCavity/LidDrivenCavityTest.cpp
+A	code/test/SolverCG/SolverCGTest.cpp
+A	code/test/Test.cpp
 
-commit 6695a08c4211cf9c450b7030c6bc15c66e674654
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 18:17:24 2024 +0000
+commit ae2df4bb48cfbcda955da91b39919c332a4a6896
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Thu Mar 7 17:39:26 2024 +0000
 
-    added html folder into git repo so online doc viewing is possible
+    Implemented Serial WriteSolution LidDrivenCavity Test
+    
+    Note: working write solution test for ldc checking line count and value count as initialise and print config ensures correct values and write should just check printing capabaility
 
-M	.gitignore
-M	README.md
-A	docs/html/LidDrivenCavity_8h_source.html
-A	docs/html/SolverCG_8h_source.html
-A	docs/html/annotated.html
-A	docs/html/bc_s.png
-A	docs/html/bdwn.png
-A	docs/html/classLidDrivenCavity-members.html
-A	docs/html/classLidDrivenCavity.html
-A	docs/html/classSolverCG-members.html
-A	docs/html/classSolverCG.html
-A	docs/html/classes.html
-A	docs/html/closed.png
-A	docs/html/dir_050edd66366d13764f98250ef6db77f6.html
-A	docs/html/dir_14807827589b339a04434892d1c1deae.html
-A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.map
-A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.md5
-A	docs/html/dir_14807827589b339a04434892d1c1deae_dep.png
-A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a.html
-A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.map
-A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.md5
-A	docs/html/dir_9266ced76b77426bd1905b8d18b8e17a_dep.png
-A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3.html
-A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.map
-A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.md5
-A	docs/html/dir_ef9158bd1cbc45b5abe3444a8d5197d3_dep.png
-A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c.html
-A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.map
-A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.md5
-A	docs/html/dir_f8a5fb882cc5ea0f84873b4bfbe1e42c_dep.png
-A	docs/html/doc.png
-A	docs/html/doxygen.css
-A	docs/html/doxygen.svg
-A	docs/html/dynsections.js
-A	docs/html/files.html
-A	docs/html/folderclosed.png
-A	docs/html/folderopen.png
-A	docs/html/graph_legend.html
-A	docs/html/graph_legend.md5
-A	docs/html/graph_legend.png
-A	docs/html/index.html
-A	docs/html/jquery.js
-A	docs/html/logo.png
-A	docs/html/logo_big.png
-A	docs/html/logo_small.png
-A	docs/html/menu.js
-A	docs/html/menudata.js
-A	docs/html/nav_f.png
-A	docs/html/nav_g.png
-A	docs/html/nav_h.png
-A	docs/html/open.png
-A	docs/html/screenshot.png
-A	docs/html/search/all_0.html
-A	docs/html/search/all_0.js
-A	docs/html/search/all_1.html
-A	docs/html/search/all_1.js
-A	docs/html/search/all_2.html
-A	docs/html/search/all_2.js
-A	docs/html/search/classes_0.html
-A	docs/html/search/classes_0.js
-A	docs/html/search/classes_1.html
-A	docs/html/search/classes_1.js
-A	docs/html/search/close.svg
-A	docs/html/search/mag_sel.svg
-A	docs/html/search/nomatches.html
-A	docs/html/search/pages_0.html
-A	docs/html/search/pages_0.js
-A	docs/html/search/search.css
-A	docs/html/search/search.js
-A	docs/html/search/search_l.png
-A	docs/html/search/search_m.png
-A	docs/html/search/search_r.png
-A	docs/html/search/searchdata.js
-A	docs/html/splitbar.png
-A	docs/html/sync_off.png
-A	docs/html/sync_on.png
-A	docs/html/tab_a.png
-A	docs/html/tab_b.png
-A	docs/html/tab_h.png
-A	docs/html/tab_s.png
-A	docs/html/tabs.css
+M	code/test/test.cpp
 
-commit f945e467b2ce45c71f1bd14fe3e4fc0c85793b0e
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 18:14:43 2024 +0000
+commit e93f777c4f47f495b5592ec19aa9a12fe17deb7a
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Thu Mar 7 16:53:55 2024 +0000
 
-    fixed doxygen maker with command 'make docs' and fixed image sizing to work on both github and docs
+    Implemented Serial PrintConfig LidDrivenCavity Test
 
-M	.gitignore
+M	Makefile
+M	code/test/test.cpp
+A	report/Questions/unit_test.tex
+
+commit 363a5fc4f196d17d31f6bb23caf4b522b154afe4
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Thu Mar 7 09:57:09 2024 +0000
+
+    Implemented ED Fix post 99
+
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+
+commit 5495903cb62dbbf842065c7efa0c7cfb6f14640e
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Wed Mar 6 22:23:52 2024 +0000
+
+    Implemented Serial Analytical SolverCG Test
+    
+    Implemented Serial Analytical SolverCG Test
+    
+    improved test logic with low tol and commented makefile for better understanding
+
 M	Makefile
 M	README.md
-M	docs/Doxyfile
-D	images/logo.png
-A	images/logo_big.png
-A	images/logo_small.png
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/test/test.cpp
 
-commit 865437b265d0235a141bc9f0116258ad633bf045
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 16:58:46 2024 +0000
-
-    added build dir to doxyfile and isolated code from build, ouptut and docs dir
-
-M	Makefile
-R100	include/LidDrivenCavity.h	code/include/LidDrivenCavity.h
-R100	include/SolverCG.h	code/include/SolverCG.h
-R100	src/LidDrivenCavity/LidDrivenCavity.cpp	code/src/LidDrivenCavity/LidDrivenCavity.cpp
-R099	src/LidDrivenCavitySolver.cpp	code/src/LidDrivenCavitySolver.cpp
-R100	src/SolverCG/SolverCG.cpp	code/src/SolverCG/SolverCG.cpp
-A	docs/Doxyfile
-M	images/logo.png
-
-commit 98d758becee2dce75d4b428c6822b6b119a4cf6e
-Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
-Date:   Wed Feb 28 16:26:07 2024 +0000
-
-    edited logo size for badges on md file to load properly
-
-M	README.md
-
-commit 8f6489ac9a3738fb0b2b4c6a1200c7de20051730
+commit bfd07c228c66c8ad424e6537fb5f0e9aade81b41
 Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
 Date:   Wed Feb 28 16:21:09 2024 +0000
 
+    Project setup: Initial documentation, doxygen, test.exe and makefile
+    
+    Note: Ready to start Serial Unit Tests
+    
     edited logo size for badges on md file to load properly
+    
+    edited logo size for badges on md file to load properly
+    
+    added build dir to doxyfile and isolated code from build, ouptut and docs dir
+    
+    fixed doxygen maker with command 'make docs' and fixed image sizing to work on both github and docs
+    
+    added html folder into git repo so online doc viewing is possible
+    
+    added subtree command for gh-pages publishing
+    
+    this added commit and gh page publish to repo
+    
+    fixed link to online docs on readme
+    
+    Updated Log
+    
+    Fixed output name to solver and added more info into markdown regarding main files and git scripts
+    
+    Updated Log
+    
+    Updated Log
+    
+    Updated Log
+    
+    added initial doxy first comment to all code
+    
+    added brief document
+    
+    added Report template
+    
+    added report to readme
+    
+    fixed url to report pdf to online instead of relative for doxygen to work
+    
+    removed html from repo
+    
+    edited html
+    
+    edited html
+    
+    edited html
+    
+    Removed report pdf from repo, updated readme with tasks
+    
+    fixed build issue with build and bin folder instantiation
+    
+    Edited Makefile to have correct build files and updated output
+    
+    Edited Makefile to ensure outpu folder written so that ic and final.txt get created
 
+M	.gitignore
+M	Makefile
 M	README.md
+A	brief.pdf
+A	code/include/LidDrivenCavity.h
+A	code/include/SolverCG.h
+A	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+R084	src/LidDrivenCavitySolver.cpp	code/src/LidDrivenCavitySolver.cpp
+R064	src/SolverCG/SolverCG.cpp	code/src/SolverCG/SolverCG.cpp
+A	code/test/test.cpp
+A	docs/Doxyfile
 D	images/doxygen.jpeg
 A	images/doxygen.jpg
+D	images/logo.png
+A	images/logo_big.png
+A	images/logo_small.png
 M	images/makefile.png
+A	images/report.png
+D	include/LidDrivenCavity.h
+D	include/SolverCG.h
+A	report/Default/preamble.tex
+A	report/Default/title.tex
+A	report/Questions/q1.tex
+A	report/Report.tex
+A	repository.log
+D	src/LidDrivenCavity/LidDrivenCavity.cpp
 
-commit 0d7a3e652baabcd596d194af8ad00144b8eca71a
+commit cb4c017d366e29b7048041e5088854faebe49fc6
 Author: Paul Kallarackel <pjk21@hurricane.ae.ic.ac.uk>
 Date:   Wed Feb 28 15:56:16 2024 +0000
 
-    setup project with default files from blackboard having adjusted the include statements and output file name for new project structure. also created makefile to build project with clean statements. heavily edited the markdown file for optimum reader experience.
+    Default files from blackboard, makefile, readMe.md
+    
+    Note: having adjusted the include statements and output file name for new project structure. also created makefile to build project with clean statements. heavily edited the markdown file for optimum reader experience.
 
 A	.gitignore
 A	Makefile
