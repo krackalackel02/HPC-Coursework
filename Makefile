@@ -241,12 +241,12 @@ git-commit:
 ifndef MSG
 	$(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
 else
-	git checkout mpi
+	git checkout main
 	git add .
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push origin mpi --tags
+	git push origin main --tags
 git-publish-docs:
 	git subtree push --prefix docs/html origin gh-pages
 git-log:
