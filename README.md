@@ -292,8 +292,8 @@ _You can view the document below:_
           - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
     - [ ]  Task 6.
         - [ ]  Implement OpenMP
-          - [ ]  Add multi-threading to the code using OpenMP
-          - [ ]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
+          - [x]  Add multi-threading to the code using OpenMP
+          - [x]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
           - [ ]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
           - [ ]  **Report:** Concisely summarise your approach to parallelising the code with OpenMP.
           - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why?
