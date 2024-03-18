@@ -10,6 +10,7 @@ BOOST_AUTO_TEST_SUITE(SolverCGTestSuite)
 
 BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
 {
+    MPI_Barrier(MPI_COMM_WORLD);
     /// Analytical Solution
     int world_size,world_rank;
     MPI_Comm cartComm;
@@ -83,9 +84,12 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_AnalayticalTest)
     delete[] start;
     delete[] stop;
     MPI_Comm_free(&cartComm);
+    MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_ZeroTest){
+    MPI_Barrier(MPI_COMM_WORLD);
     /// Zero input solution
     int world_size,world_rank;
     MPI_Comm cartComm;
@@ -145,6 +149,7 @@ BOOST_AUTO_TEST_CASE(SolverCG_SOLVE_ZeroTest){
     delete[] start;
     delete[] stop;
     MPI_Comm_free(&cartComm);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

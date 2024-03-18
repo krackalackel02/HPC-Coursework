@@ -13,6 +13,7 @@ BOOST_AUTO_TEST_SUITE(LidDrivenCavityTestSuite)
 
 BOOST_AUTO_TEST_CASE(LidDrivenCavity_PRINTCONFIG_Test)
 {
+    MPI_Barrier(MPI_COMM_WORLD);
     int world_size, world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -76,10 +77,12 @@ BOOST_AUTO_TEST_CASE(LidDrivenCavity_PRINTCONFIG_Test)
         delete[] input;
         delete[] readOutput;
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 BOOST_AUTO_TEST_CASE(LidDrivenCavity_WRITESOLUTION_Test)
 {
+    MPI_Barrier(MPI_COMM_WORLD);
     // Original settings
     int world_size, world_rank;
     MPI_Comm cartComm;
@@ -92,7 +95,6 @@ BOOST_AUTO_TEST_CASE(LidDrivenCavity_WRITESOLUTION_Test)
     int sizes[dims] = {world_p, world_p};
     int periods[dims] = {0, 0};
     int reorder = 0;
-    if(world_rank==0)std::cout << "HERE" << endl;
     MPI_Cart_create(MPI_COMM_WORLD, dims, sizes, periods, reorder, &cartComm);
     double Lx = 1.0;
     double Ly = 1.0;
@@ -167,6 +169,7 @@ BOOST_AUTO_TEST_CASE(LidDrivenCavity_WRITESOLUTION_Test)
     }
     delete ldc;
     MPI_Comm_free(&cartComm);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

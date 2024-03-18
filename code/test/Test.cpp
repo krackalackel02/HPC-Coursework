@@ -3,9 +3,6 @@
 #include <iostream>
 #include <mpi.h>
 #include <omp.h>
-#include <boost/program_options.hpp>
-#include <omp.h>
-namespace po = boost::program_options;
 // ... BEFORE including the Boost test header
 #define BOOST_TEST_MODULE Solver_and_Cavity_Test_Suite
 #include <boost/test/included/unit_test.hpp>
@@ -42,23 +39,18 @@ MPIFixture::MPIFixture()
         BOOST_FAIL(msg);
     }
 
-    po::options_description opts(
-        "Solver for the 2D lid-driven cavity incompressible flow problem");
-    opts.add_options()
-        ("nt",  po::value<int>()->default_value(1),
-                "OpenMP Threads.")
-        ("verbose",    "Be more verbose.")
-        ("help",       "Print help message.");
-
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, opts), vm);
-    po::notify(vm);
+    
     int ThreadNum,ThreadID;
-    ThreadNum = vm["nt"].as<int>();
+    char *env_var = getenv("OMP_NUM_THREADS");
+    if (env_var != NULL) {
+        ThreadNum = atoi(env_var); // Convert string to integer
+    } else {
+        printf("OMP_NUM_THREADS is not set. Using default number of threads.\nSet env variable with \"export OMP_NUM_THREADS=4\"\n");
+    }
+    omp_set_num_threads(ThreadNum);
     // Get the rank and comm size on each process.
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    omp_set_num_threads((omp_get_max_threads()>ThreadNum?ThreadNum:omp_get_max_threads()));
     if (world_size < 1)
     {
 
@@ -76,7 +68,7 @@ MPIFixture::MPIFixture()
         MPI_Finalize(); // Ensure MPI is finalized if there's an error
         BOOST_FAIL(msg);
     }
-    if (world_rank == 0) std::cout << "P: " << floor(sqrt(world_size)) << std::endl;
+    if (world_rank == 0) std::cout << "Number of ranks: " << world_size << std::endl;
     #pragma omp parallel private(ThreadID)
 	{
 		// Obtain and print thread id
@@ -88,7 +80,7 @@ MPIFixture::MPIFixture()
 			std::cout << "Number of threads = " << ThreadNum << std::endl;
 		}
 	} // All threads join master thread and terminate
-    
+    MPI_Barrier(MPI_COMM_WORLD);
 
 }
 
