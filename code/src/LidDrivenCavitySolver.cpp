@@ -15,6 +15,7 @@
 #include "../include/Test.h"
 #include <cmath>
 #include <boost/program_options.hpp>
+#include <omp.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -36,10 +37,10 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    if (world_size < 1  || world_size>16)
+    if (world_size < 1 )
     {
 
-        if( world_rank==0)cout << "ERROR use between 1 and 16 process" << endl;
+        if( world_rank==0)cout << "ERROR use at least 1 proccess" << endl;
         MPI_Finalize();
         return 1;
     }
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     }
     
     MPI_Comm cartComm;
-    int Nx,Ny;
+    int Nx,Ny,ThreadNum,ThreadID;
     double Lx,Ly,dt,T,Re;
     int world_p = (int)sqrt(world_size);
     if(world_rank==0)cout << "P: "<<world_p << endl;
@@ -83,6 +84,8 @@ int main(int argc, char *argv[])
                 "Final time.")
         ("Re",  po::value<double>()->default_value(10),
                 "Reynolds number.")
+        ("nt",  po::value<int>()->default_value(1),
+                "OpenMP Threads.")
         ("verbose",    "Be more verbose.")
         ("help",       "Print help message.");
 
@@ -97,6 +100,9 @@ int main(int argc, char *argv[])
     dt = vm["dt"].as<double>();
     T = vm["T"].as<double>();
     Re = vm["Re"].as<double>();
+    ThreadNum = vm["nt"].as<int>();
+    
+    omp_set_num_threads(min(ThreadNum,omp_get_max_threads()));
         
     if (world_p>Nx||world_p>Ny)
     {
@@ -109,6 +115,17 @@ int main(int argc, char *argv[])
             cout << opts << endl;
             return 0;
         }
+	#pragma omp parallel private(ThreadID)
+	{
+		// Obtain and print thread id
+		ThreadID = omp_get_thread_num();
+		// Only master thread does this
+		if (ThreadID == 0)
+		{
+			ThreadNum = omp_get_num_threads();
+			cout << "Number of threads = " << ThreadNum << endl;
+		}
+	} // All threads join master thread and terminate
 
     /// New solver instance for defined problem above
     LidDrivenCavity* solver = new LidDrivenCavity();

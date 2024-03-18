@@ -44,10 +44,10 @@ MPIFixture::MPIFixture()
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    if (world_size < 1 || world_size > 16)
+    if (world_size < 1)
     {
 
-        msg = "ERROR use between 1 and 16 process";
+        msg = "ERROR use at least 1 process";
         BOOST_FAIL(msg);
     }
     if (sqrt(world_size) != floor(sqrt(world_size)))

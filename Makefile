@@ -9,10 +9,11 @@ OUTPUT_DIR = output
 # include directory for location of headers
 INC_DIR = code/include
 # compiler
-CC = mpicxx
-THREADS = 16
+CC = mpicxx -fopenmp
+PROCS = 36
+THREADS = 1
 # runner
-RUN = mpiexec -np $(THREADS)
+RUN = mpiexec -np $(PROCS)
 # optimisation
 OPT = -O2
 # Dependancy uto generation
