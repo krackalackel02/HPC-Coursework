@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     }
     
     MPI_Comm cartComm;
-    int Nx,Ny,ThreadNum,ThreadID;
+    int Nx,Ny,ThreadNum,DEFAULT_ThreadNum,ThreadID;
     double Lx,Ly,dt,T,Re;
     int world_p = (int)sqrt(world_size);
     if(world_rank==0)cout << "P: "<<world_p << endl;
@@ -63,8 +63,14 @@ int main(int argc, char *argv[])
     int reorder = 0;
 
     MPI_Cart_create(MPI_COMM_WORLD, dims, sizes, periods, reorder, &cartComm);
-
-
+	
+	char *env_var = getenv("OMP_NUM_THREADS");
+    if (env_var != NULL) {
+        DEFAULT_ThreadNum = atoi(env_var); // Convert string to integer
+    } else {
+		DEFAULT_ThreadNum=1;
+        printf("OMP_NUM_THREADS is not set. Using default number of threads.\nSet env variable with \"export OMP_NUM_THREADS=4\"\n");
+    }
 
     /// Allows custom simulation
     po::options_description opts(
@@ -84,7 +90,7 @@ int main(int argc, char *argv[])
                 "Final time.")
         ("Re",  po::value<double>()->default_value(10),
                 "Reynolds number.")
-        ("nt",  po::value<int>()->default_value(1),
+        ("nt",  po::value<int>()->default_value(DEFAULT_ThreadNum),
                 "OpenMP Threads.")
         ("verbose",    "Be more verbose.")
         ("help",       "Print help message.");
