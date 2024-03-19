@@ -1,0 +1,3 @@
+In conclusion, becuase of the distributed nature of MPI prgroamming, and given that the probelm at hand is a large spatial Poisson probelm thats being integrated through time, it is clear why this methodology achieved much better reductions in timings as the number of resources (rnaks) increased.
+On the otherhand, due to the nature of multi-threaded programming needing more optimsations when it comes to accessing the cache, avoiding race conditions and false sharing; it is possible that the executable was not as optimised to take advantage of multiple threads.
+Both of these conclusions were drawn from their associated scaling plot and through development and testing.

@@ -268,14 +268,19 @@ git-commit:
 ifndef MSG
 	$(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
 else
-	git checkout data
+	git checkout main
 	git add .
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push origin data --tags
+	git push origin main --tags
 git-publish-docs:
+    # Move Report.pdf to docs/html if it exists
+	mv -f report/Report.pdf docs/html/ || true
+    # Perform the subtree push
 	git subtree push --prefix docs/html origin gh-pages
+
+
 git-log:
 	git log --name-status > repository.log
 	make git-commit MSG="Updated Log"

@@ -43,7 +43,8 @@ report/*.run.xml
 report/*.synctex.gz
 report/*.xdv
 report/*.bib
-
+report/Images/timings*.png
+report/_minted-Report/
 # Dependency directories (uncomment if applicable)
 # deps/
 
@@ -51,6 +52,7 @@ report/*.bib
 /*.txt
 output/
 report/Data/output/
+report/Data/*.asv
 
 # Backup & temporary files
 *~
