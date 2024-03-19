@@ -1,23 +1,138 @@
-\documentclass[a4paper,12pt]{article}
+% Command to build doc:
+% "latex-workshop.latex.tools": [
+		
+% 		{
+% 			"name": "lualatexmk",
+% 			"command": "latexmk",
+% 			"args": [
+%                 "-shell-escape", 
+% 				"-synctex=1",
+% 				"-interaction=nonstopmode",
+% 				"-file-line-error",
+% 				"-lualatex",
+% 				"-outdir=%OUTDIR%",
+% 				"%DOC%"
+% 			],
+% 			"env": {}
+% 		}
+% 	],
+\documentclass[a4paper,11pt]{report}
 \input{Default/preamble.tex}
 \begin{document}
-\newpage
-\pagenumbering{arabic}
-% % % % Title Page
-\input{Default/title.tex}
+    \newpage
+    \pagenumbering{arabic}
+    % % % % Title Page
+    \input{Default/title.tex}
+    \newcommand{\largedomain}{timingsLx1Ly1Nx201Ny201Re1000dt0_005T5}
+    \newcommand{\smalldomain}{timingsLx1Ly1Nx101Ny101Re500dt0_005T5}
+    % % % % Task 4
+    \vspace*{-0.3cm}
+    \section{Unit-Testing (Task 4)}
+    \input{Questions/q4.tex}
+    % % % % Task 5
+    \vspace*{-0.3cm}
+    \section{Extending code with MPI (Task 5)}
+    \input{Questions/q5.tex}
 
-% % % % Part1
-\section{}
-\setcounter{subsection}{0}
-% % Question 1
-\subsection{}
-\input{Questions/q1.tex}
-% \input{Part 1/p1q1.tex}
-% % Question 2
-% \subsection{}
-% \input{Part 1/p1q2.tex}
+    % % % % Task 6
+    \vspace*{-0.3cm}
+    \section{Extending code with OpenMP (Task 6)}
+    \input{Questions/q6.tex}
+
+    % % % % Task 7
+    \vspace*{-0.3cm}
+    \section{Optimising with profiler (Task 7)}
+    \input{Questions/q7.tex}
+
+     % % % % Summary
+     \vspace*{-0.3cm}
+     \section{Summary}
+     \input{Questions/summary.tex}
+    
 
 
-% \input{Default/bibliography}
+
+
+
+
+
+    \newcommand{\currAppendixLetter}{A}
+    \newcommand{\currAppendixTitle}{Supporting Diagram}
+    \begin{appendices}
+        
+        % APPENDIX A
+        \renewcommand{\currAppendixLetter}{A}
+        \renewcommand{\currAppendixTitle}{Supporting Diagram}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::Support}
+        \input{AppendixSupport/AppendixSupport}
+
+        % APPENDIX B
+        \renewcommand{\currAppendixLetter}{B}
+        \renewcommand{\currAppendixTitle}{Unit Test Code}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::Test}
+        \input{AppendixTest/AppendixTest}
+        
+        % APPENDIX C
+        \renewcommand{\currAppendixLetter}{C}
+        \renewcommand{\currAppendixTitle}{Parallel Functions}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::Parallel}
+        \input{AppendixParallel/AppendixParallel}
+        
+        % APPENDIX D
+        \renewcommand{\currAppendixLetter}{D}
+        \renewcommand{\currAppendixTitle}{Lid Driven Cavity}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::LDC}
+        \input{AppendixLDC/AppendixLDC}
+        
+        % APPENDIX E
+        \renewcommand{\currAppendixLetter}{E}
+        \renewcommand{\currAppendixTitle}{Solver CG}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::SCG}
+        \input{AppendixSCG/AppendixSCG}
+        
+        % APPENDIX F
+        \renewcommand{\currAppendixLetter}{F}
+        \renewcommand{\currAppendixTitle}{MATLAB Data Analysis}
+        \renewcommand{\thesubsection}{\currAppendixLetter.\arabic{subsection}}
+        \renewcommand{\thesection}{\currAppendixLetter.\arabic{section}}
+        \renewcommand{\thechapter}{\currAppendixLetter}
+        \renewcommand{\thesubsubsection}{\currAppendixLetter.\arabic{subsection}.\arabic{subsubsection}}
+        \renewcommand{\lstlistingname}{Code Snippet}
+        \renewcommand{\thelisting}{\currAppendixLetter.\arabic{listing}}
+        \chapter{\currAppendixTitle}
+        \label{Appendix::MATLAB}
+        \input{AppendixMATLAB/AppendixMATLAB}
+
+    \end{appendices}
 \end{document}
 

@@ -1,0 +1,45 @@
+The unit-testing performed, throughout the development process, 
+focused on public methods of the ,``LidDrivenCavity" class (LDC), and treated the ,``SolverCG'' class (SCG),
+as a unit onto itself. The unit tests kept the same checking conditions when extending the original
+serial code with MPI and OpenMP, however significant refactoring was necessary to facilitate these equivalent checks.
+The source code for these tests can be found in \app\ref{Appendix::Test}.
+\subsection{``LidDrivenCavity.h"}
+The tests written for the LDC were deigned to validate the public methods the user would be accessing within the main script.
+The setters and getters such as ``SetDomainSize'' were not tested due to their simplistic nature.
+If more complexity was used in the afformentioned methods then they also would have been tested. 
+\subsubsection{LidDrivenCavity::PrintConfiguration()}
+The ``PrintConfiguration'' test utilised a stream-buffer as shown in \code\ref{lst:LidDrivenCavityTest}. After rerouting the output stream, the printed information
+is extracted using a pattern search, via a regular expression. Finally, a vector is stored contained the printed values and the expected value.
+Using the ``compareSolution()'' defined in \code\ref{lst:MyTest} the 2-norm or the error is computed and checked against a tolerance of 1e-3.
+\subsubsection{LidDrivenCavity::WriteSolution()}
+On the other hand the ``WriteSolution'' test involved conditions that were  agnostic of the accuracy of the SCG class.
+The conditions require that the solver has successfully written out to the file requested through a comprehensive list of checks. 
+These range from the file existing; the maximum number of values on a given line being the six paramters: 
+x co-ordinate, y co-ordinate, vorticity, stream function, x velocity and y velocity;
+and finally that there are the correct number of lines / grid points being printed.
+\subsection{``SolverCG.h"}
+Whilst the previous unit tests weren't concerned with the accuracy of the data being calculated, the following tests validate the ``SolverCG::Solve'' method.
+Using the below equation \eq\ref{eq:nabla} that spatial Poisson problem was defined. 
+\begin{equation}
+    - {\nabla}^2 \psi \hat{\mathbf{k}} = \omega
+    \label{eq:nabla}
+\end{equation}
+The main way the test changed once MPI had been implemented, was that the local error between the numerical and analytical solutions had to be precomputed and {\it reduced} to every other rank.
+The tolerance used in the following tests was equivalent to the one set in the main solver file to maintain consistency.
+\subsubsection{SolverCG::Solve() - Analytical}
+Using a sinusoidal solution allowed a varying frequency in the stream function, shown in \eq\ref{eq:psi}.
+The significance of this function was that the boundary conditions at the walls of the cavity were enforced given that at $x=L_x$, $y=L_y$ and at the origin.
+\begin{equation}
+    \psi = \sin\bigl(\pi * k * x\bigr)\sin\bigl(\pi * l * y\bigr),\quad k = \frac{2\pi}{L_x},\quad l = \frac{2\pi}{L_y}
+    \label{eq:psi}
+\end{equation}
+Combining \eqs \ref{eq:nabla} and \ref{eq:psi}, gave the input solution to the ``Solve'' method as it used a conjugate gradient algorithm to solve for $x$ in $Ax=B$.
+This input is found below in \eq\ref{eq:vort}.
+\begin{equation}
+    \omega = \pi^2(k^2+l^2)\sin\bigl(\pi * k * x\bigr)\sin\bigl(\pi * l * y\bigr),\quad k = \frac{2\pi}{L_x},\quad l = \frac{2\pi}{L_y}
+    \label{eq:vort}
+\end{equation}
+As seen in \code\ref{lst:SolverCGTest} the domain used was of size 6,000,000 grid points and could be run with a variable number of MPI ranks as shown in \code\ref{lst:MyTest} through the Boost global fixture.
+\subsubsection{SolverCG::Solve() - Zero Input}
+Constrastingly, the ``Zero Input'' test was used to ensure that during the development of the parallelisation, the solver still gave back a zero vector.
+This functionality  was implemented to avoid errors from failing to converge with such a small vorticity input.

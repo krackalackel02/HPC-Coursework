@@ -1,0 +1,37 @@
+\subsection{Parallel Vs. Serial Performance}
+It can be seen that generally the parallelisation was implemented correctly as the total time during execution was reduced as the number of ``OMP'' threads increasedbelow in \fig\ref{fig:large:OMPVTOTAL}.
+Interestingly, the OpenMP solver can be seen to actually become siginificantly worse after roughly 8 threads. This was hypothesised due to the the overhead between the threads when encountering for loops and importantly caching issues.
+Expanding on this further, when the number of threads increased the amount of cache used did also; therefore after a certain point the executable no onger runs as efficiently as possible.
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{Images/\largedomain___OMPVTOTAL.png}
+        \caption{Plot showing performance of OMP implementation against serial case}
+        \label{fig:large:OMPVTOTAL}
+\end{figure}
+As before, the normalised time plot has been produced below in \fig\ref{fig:both:OMPVNORMAL}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/\largedomain___OMPVNORMAL.png}
+        \caption{OMP (Large)}
+        \label{fig:large:OMPVNORMAL}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/\smalldomain___OMPVNORMAL.png}
+        \caption{OMP (Small)}
+        \label{fig:small:OMPVNORMAL}
+    \end{subfigure}
+    \caption{Plots showing normalized time scaling plot to see the effect Open MP parallelisation has on both ``Large'' and ``Small'' domains}
+    \label{fig:both:OMPVNORMAL}
+\end{figure}
+\vspace{-0.75cm}
+It is apparant that when smaller domain settings were used the solver did not show very good scaling. This is incontrast to the MPI implementation where, even at ``Small'' settings the running time still reduced.
+Specifically, there was a 48\% reduction in ``Solve'' time when increasing the serial case to have up to 8 threads. Furthermore, unlike the MPI case, the ``Write''  time was severely increased with thread number showing major overhead in communication with threads hanging about and not doing work.
+This makes sense however as there was a MPI barrier within this function that would force sequential writes for the ordered output.
+\subsection{Design Methodology}
+When implementing Open MP for the initial design, one major design concept was used.
+THis utilised the ``\#pragma omp parallel for schedule(static)'' pattern on almost all for loops where possible, ensuring no race conditions or false sharing occured.
+This process however clearly was not the most effective as the performance did not scale as well as the MPI case with thread count ( and rank count).

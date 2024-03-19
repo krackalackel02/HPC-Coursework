@@ -218,7 +218,7 @@ _Makefile Snippet_
     make git-push
   ```
 ### Solver Executable
-_For more instructions, please refer to the [Documentation](https://example.com)_
+_For more instructions, please refer to the [Documentation](https://krackalackel02.github.io/HPC-Coursework/index.html)_
 
 1. Call make clean to empty any old build files
    ```sh
@@ -242,7 +242,7 @@ _For more instructions, please refer to the [Documentation](https://example.com)
 
 <!-- REPORT -->
 ## Report
-The final report for this coursework is located in the "./report/" folder. Furthermore it can be build using latex, if the correct packages and xelatex is installed.
+The final report for this coursework is located in the "./report/" folder. Furthermore it can be build using latex, if the correct packages and xelatex is installed. For the plots in the report to be generated run the ``myPlot.m'' from 'report/Data' MATLAB script.
 
 _You can view the document below:_
 [![][report badge]][report url]
@@ -278,7 +278,7 @@ _You can view the document below:_
         - [x]  **Report:** Provide brief description 
         - [x]  Compile with "unittests" Makefile target
     - [ ]  Task 5.
-        - [ ]  Implement MPI
+        - [x]  Implement MPI
           - [x]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
             - [x]  Implement distribution of grid into ranks for cart grid
             - [x]  Implement exchange of ghost values at boundaries
@@ -293,7 +293,7 @@ _You can view the document below:_
           - [x]  **Report:** How did you try to ensure the work done by each process was as balanced as possible?
           - [x]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
     - [ ]  Task 6.
-        - [ ]  Implement OpenMP
+        - [x]  Implement OpenMP
           - [x]  Add multi-threading to the code using OpenMP
           - [x]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
           - [x]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
@@ -302,7 +302,7 @@ _You can view the document below:_
     - [ ]  Task 7.
         - [ ]  Optimise your code using a profiler.
           - [x]  Use one MPI process and one OpenMP thread for this part.
-          - []  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
+          - [x]  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
           - [x]  **Report:** List optimisations you have made to the code to improve performance, and quantify the change observed.
     - [ ]  Task 8.
         - [x]  Use good coding practices (code layout, comments, etc) throughout your code.
