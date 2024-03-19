@@ -20,26 +20,12 @@ using namespace std;
 #include <sstream>
 
 #include <cblas.h>
-/**
- * @brief Used as shorthand for coordinates
- *
- */
-#define IDX(I, J) ((J) * Nx + (I))
-
 #include "../../include/LidDrivenCavity.h"
 #include "../../include/SolverCG.h"
 
-/**
- * @brief Construct a new Lid Driven Cavity:: Lid Driven Cavity object
- *
- */
 LidDrivenCavity::LidDrivenCavity()
 {
 }
-/**
- * @brief Destroy the Lid Driven Cavity:: Lid Driven Cavity object
- *
- */
 LidDrivenCavity::~LidDrivenCavity()
 {
     CleanUp();
@@ -48,79 +34,32 @@ prl::gridData *LidDrivenCavity::getGRID()
 {
     return GRID;
 }
-/**
- * @brief Sets width and height of cavity
- *
- * @param xlen Domain of cavity across x
- * @param ylen Domain of cavity across y
- */
 void LidDrivenCavity::SetDomainSize(double xlen, double ylen)
 {
     this->Lx = xlen;
     this->Ly = ylen;
     UpdateDxDy();
 }
-void LidDrivenCavity::Setv(int idx, double val)
-{
-    v[idx] = val;
-}
-double LidDrivenCavity::Getv(int idx)
-{
-    return v[idx];
-}
-void LidDrivenCavity::Sets(int idx, double val)
-{
-    s[idx] = val;
-}
-double LidDrivenCavity::Gets(int idx)
-{
-    return s[idx];
-}
-/**
- * @brief Discretises Domain into a grid
- *
- * @param nx Number of points across x dimension
- * @param ny Number fo points across y dimension
- */
 void LidDrivenCavity::SetGridSize(int nx, int ny)
 {
     this->Nx = nx;
     this->Ny = ny;
     UpdateDxDy();
 }
-/**
- * @brief Sets timestep for solver
- *
- * @param deltat size of times tep
- */
 void LidDrivenCavity::SetTimeStep(double deltat)
 {
     this->dt = deltat;
 }
-/**
- * @brief Sets final time of solver
- *
- * @param finalt final time for simulation
- */
 void LidDrivenCavity::SetFinalTime(double finalt)
 {
     this->T = finalt;
 }
-/**
- * @brief Sets Reynolds number of problem
- *
- * @param re Reynolds number
- */
 void LidDrivenCavity::SetReynoldsNumber(double re)
 {
     this->Re = re;
     this->nu = 1.0 / re;
 }
-/**
- * @brief Initialises spatial solver for cavity
- *
- */
-void LidDrivenCavity::Initialise(int p, int rank, MPI_Comm comm)
+void LidDrivenCavity::Initialise(int p, int rank, MPI_Comm &comm)
 {
     CleanUp();
     /// Init vorticity, stream function and temporary vector for simulation
@@ -128,10 +67,6 @@ void LidDrivenCavity::Initialise(int p, int rank, MPI_Comm comm)
     /// Init new solver with domain size and discretisation
     cg = new SolverCG(Nx, Ny, dx, dy, GRID);
 }
-/**
- * @brief Calls solver and advances simulation for each timestep
- *
- */
 void LidDrivenCavity::Integrate()
 {
     /// number of timesteps
@@ -145,31 +80,22 @@ void LidDrivenCavity::Integrate()
         Advance();
     }
 }
-/**
- * @brief Writes out simulation data to output file with tabulated properties |x|y|omega|psi|xu|v|
- *
- * @param file Output file name
- */
 void LidDrivenCavity::WriteSolution(std::string file)
 {
-    double *u0 = new double[Nx * Ny]();
-    double *u1 = new double[Nx * Ny]();
     int *start = new int[2];
     int *stop = new int[2];
-    int *cartCoord = new int[2];
     int *currCoord = new int[2];
     int Chunkx = GRID->getChunkx();
     int Chunky = GRID->getChunky();
     GRID->getStart(start);
     GRID->getStop(stop);
-    GRID->getCartCoord(cartCoord);
-    bool wallTop = start[1] == 0;
-    bool wallBottom = stop[1] == Ny - 1;
-    bool wallLeft = start[0] == 0;
-    bool wallRight = stop[0] == Nx - 1;
+    bool wallTop = GRID->getUp()<0;
+    bool wallBottom = GRID->getDown()<0;
+    bool wallLeft = GRID->getLeft()<0;
+    bool wallRight =GRID->getRight()<0;
     int size = (Chunkx + 2) * (Chunky + 2);
-    double *MPIu0 = new double[size]();
-    double *MPIu1 = new double[size]();
+    double *u0 = new double[size]();
+    double *u1 = new double[size]();
     GRID->exchangeGhost(s);
     #pragma omp parallel for schedule(static) 
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
@@ -178,9 +104,9 @@ void LidDrivenCavity::WriteSolution(std::string file)
         {
 
             /// x velocity: u = d(psi)/dy
-            MPIu0[LOCIDX(i, j)] = (s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j)]) / dy;
+            u0[LOCIDX(i, j)] = (s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j)]) / dy;
             /// y velocity: -v = d(psi)/dx
-            MPIu1[LOCIDX(i, j)] = -(s[LOCIDX(i + 1, j)] - s[LOCIDX(i, j)]) / dx;
+            u1[LOCIDX(i, j)] = -(s[LOCIDX(i + 1, j)] - s[LOCIDX(i, j)]) / dx;
         }
     }
     if (wallTop)
@@ -189,7 +115,7 @@ void LidDrivenCavity::WriteSolution(std::string file)
         for (int i = 0; i < Chunkx; ++i)
         {
             /// freestream velocity
-            MPIu0[LOCIDX(i, 0)] = U;
+            u0[LOCIDX(i, 0)] = U;
         }
     }
     int k = 0;
@@ -222,7 +148,7 @@ void LidDrivenCavity::WriteSolution(std::string file)
                 x = i * dx;
                 y = (Ny - 1 - j) * dy;
                 // Collecting data into stringstream
-                ss << x << " " << y << " " << v[k] << " " << s[k] << " " << MPIu0[k] << " " << MPIu1[k] << std::endl;
+                ss << x << " " << y << " " << v[k] << " " << s[k] << " " << u0[k] << " " << u1[k] << std::endl;
                 f << ss.str();
                 f.close();
             }
@@ -236,17 +162,10 @@ void LidDrivenCavity::WriteSolution(std::string file)
     }
     delete[] u0;
     delete[] u1;
-    delete[] MPIu0;
-    delete[] MPIu1;
     delete[] start;
     delete[] stop;
-    delete[] cartCoord;
     delete[] currCoord;
 }
-/**
- * @brief Prints simulation results to terminal
- *
- */
 void LidDrivenCavity::PrintConfiguration()
 {
     cout << "Grid size: " << Nx << " x " << Ny << endl;
@@ -266,10 +185,6 @@ void LidDrivenCavity::PrintConfiguration()
     }
 }
 
-/**
- * @brief Calculates space domain steps and total number of grid points
- *
- */
 void LidDrivenCavity::UpdateDxDy()
 {
     /// calculating grid size and number of poitns
@@ -278,10 +193,6 @@ void LidDrivenCavity::UpdateDxDy()
     Npts = Nx * Ny;
 }
 
-/**
- * @brief Central finite difference scheme to update grid with values at next timestep
- *
- */
 void LidDrivenCavity::Advance()
 {
     /// divisors to be used and multiplied by to optimise code
@@ -289,22 +200,30 @@ void LidDrivenCavity::Advance()
     double dyi = 1.0 / dy;
     double dx2i = 1.0 / dx / dx;
     double dy2i = 1.0 / dy / dy;
-    int *start = new int[2];
-    int *stop = new int[2];
     int Chunkx = GRID->getChunkx();
     int Chunky = GRID->getChunky();
-    GRID->getStart(start);
-    GRID->getStop(stop);
     GRID->exchangeGhost(s);
-    bool wallTop = start[1] == 0;
-    bool wallBottom = stop[1] == Ny - 1;
-    bool wallLeft = start[0] == 0;
-    bool wallRight = stop[0] == Nx - 1;
+    bool wallTop = GRID->getUp()<0;
+    bool wallBottom = GRID->getDown()<0;
+    bool wallLeft = GRID->getLeft()<0;
+    bool wallRight =GRID->getRight()<0;
+    int startY = (!wallTop ? 0 : 1);
+    int startX = (!wallLeft ? 0 : 1);
+    int stopY = (!wallBottom ? Chunky : Chunky - 1);
+    int stopX = (!wallRight ? Chunkx : Chunkx - 1);
+    int N = stopX-startX;
+    double* tmp1ROW= nullptr;
+    double* tmp2ROW= nullptr;
+    double* tmp3ROW= nullptr;
+    double* tmp4ROW= nullptr;
+    double* tmp5ROW= nullptr;
+    double* tmp6ROW= nullptr;
+    double* tmp7ROW= nullptr;
     // Boundary node vorticity - Obtained using equations 6-9 on "brief.pdf"
     if (wallTop)
     {
         #pragma omp parallel for schedule(static)
-        for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+        for (int i = startX; i < stopX; ++i)
         {
             v[LOCIDX(i, 0)] = 2.0 * dy2i * (s[LOCIDX(i, 0)] - s[LOCIDX(i, 1)]) - 2.0 * dyi * U;
         }
@@ -312,7 +231,7 @@ void LidDrivenCavity::Advance()
     if (wallBottom)
     {
         #pragma omp parallel for schedule(static)
-        for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+        for (int i = startX; i < stopX; ++i)
         {
             v[LOCIDX(i, Chunky - 1)] = 2.0 * dy2i * (s[LOCIDX(i, Chunky - 1)] - s[LOCIDX(i, Chunky - 2)]);
         }
@@ -320,7 +239,7 @@ void LidDrivenCavity::Advance()
     if (wallLeft)
     {
         #pragma omp parallel for schedule(static)
-        for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
+        for (int j = startY; j < stopY; ++j)
         {
             v[LOCIDX(0, j)] = 2.0 * dx2i * (s[LOCIDX(0, j)] - s[LOCIDX(1, j)]);
         }
@@ -328,54 +247,144 @@ void LidDrivenCavity::Advance()
     if (wallRight)
     {
         #pragma omp parallel for schedule(static)
-        for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
+        for (int j = startY; j < stopY; ++j)
         {
             v[LOCIDX(Chunkx - 1, j)] = 2.0 * dx2i * (s[LOCIDX(Chunkx - 1, j)] - s[LOCIDX(Chunkx - 2, j)]);
         }
     }
     // Compute interior vorticity - Obtained using equations 10 on "brief.pdf"
-    #pragma omp parallel for schedule(static) collapse(2)
-    for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+    #pragma omp parallel for schedule(static) private(tmp1ROW,tmp2ROW)
+    for (int j = startY; j < stopY; ++j)
     {
-        for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
-        {
-            v[LOCIDX(i, j)] = dx2i * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) + 1.0 / dy / dy * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]);
-        }
+        tmp1ROW = new double[N]();
+        tmp2ROW = new double[N]();
+        cblas_dscal(N, 0.0, &v[LOCIDX(startX+0,j+0)], 1);
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX-1,j+0)],1,tmp1ROW,1);
+        cblas_daxpy(N,+2.0,&s[LOCIDX(startX+0,j+0)],1,tmp1ROW,1);
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX+1,j+0)],1,tmp1ROW,1);
+        cblas_dscal(N,dx2i,tmp1ROW,1);
+    
+
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX+0,j-1)],1,tmp2ROW,1);
+        cblas_daxpy(N,+2.0,&s[LOCIDX(startX+0,j+0)],1,tmp2ROW,1);
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX+0,j+1)],1,tmp2ROW,1);
+        cblas_dscal(N,dy2i,tmp2ROW,1);
+        cblas_daxpy(N,1.0,tmp1ROW,1,tmp2ROW,1);
+        cblas_dcopy(N,tmp2ROW,1,&v[LOCIDX(startX+0,j+0)],1);
+        delete[] tmp1ROW;
+        delete[] tmp2ROW;
+        
     }
+    /* #pragma omp parallel for schedule(static) collapse(2)
+    for (int j = startY; j < stopY; ++j)
+    {
+        for (int i = startX; i < stopX; ++i)
+        {
+            v[LOCIDX(i, j)] = dx2i * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) ///< term 1
+            + 1.0 / dy / dy * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]); ///< term 2
+        }
+    } */
+    
     GRID->exchangeGhost(v);
     // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
-    #pragma omp parallel for schedule(static) collapse(2)
-    for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
+    #pragma omp parallel for schedule(static) private(tmp1ROW,tmp2ROW,tmp3ROW,tmp4ROW,tmp5ROW,tmp6ROW,tmp7ROW)
+    for (int j = startY; j < stopY; ++j)
     {
-        for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
-        {
-            vnew[LOCIDX(i, j)] = v[LOCIDX(i, j)] + dt * (((s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) * 0.5 * dxi * (v[LOCIDX(i, j - 1)] - v[LOCIDX(i, j + 1)]) * 0.5 * dyi) - ((s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]) * 0.5 * dyi * (v[LOCIDX(i + 1, j)] - v[LOCIDX(i - 1, j)]) * 0.5 * dxi) + nu * (v[LOCIDX(i + 1, j)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i - 1, j)]) * dx2i + nu * (v[LOCIDX(i, j - 1)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i, j + 1)]) * dy2i);
-        }
+        tmp1ROW = new double[N]();
+        tmp2ROW = new double[N]();
+        tmp3ROW = new double[N]();
+        tmp4ROW = new double[N]();
+        tmp5ROW = new double[N]();
+        tmp6ROW = new double[N]();
+        tmp7ROW = new double[N]();
+
+        cblas_dscal(N, 0.0, &vnew[LOCIDX(startX+0,j+0)], 1);
+
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+1,j+0)],1,tmp5ROW,1);
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX-1,j+0)],1,tmp5ROW,1);
+        cblas_daxpy(N,-2.0,&v[LOCIDX(startX+0,j+0)],1,tmp5ROW,1);
+        cblas_dscal(N,nu*dx2i,tmp5ROW,1);
+
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+0,j+1)],1,tmp6ROW,1);
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+0,j-1)],1,tmp6ROW,1);
+        cblas_daxpy(N,-2.0,&v[LOCIDX(startX+0,j+0)],1,tmp6ROW,1);
+        cblas_dscal(N,nu*dy2i,tmp6ROW,1);
+        
+        cblas_daxpy(N,1.0,tmp5ROW,1,tmp6ROW,1);
+
+        cblas_daxpy(N,1.0,&s[LOCIDX(startX+1,j+0)],1,tmp1ROW,1);
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX-1,j+0)],1,tmp1ROW,1);
+        cblas_dscal(N,0.5*dxi,tmp1ROW,1);
+
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+1,j+0)],1,tmp4ROW,1);
+        cblas_daxpy(N,-1.0,&v[LOCIDX(startX-1,j+0)],1,tmp4ROW,1);
+        cblas_dscal(N,0.5*dxi,tmp4ROW,1);
+
+        cblas_daxpy(N,1.0,&s[LOCIDX(startX+0,j-1)],1,tmp3ROW,1);
+        cblas_daxpy(N,-1.0,&s[LOCIDX(startX+0,j+1)],1,tmp3ROW,1);
+        cblas_dscal(N,0.5*dyi,tmp3ROW,1);
+
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+0,j-1)],1,tmp2ROW,1);
+        cblas_daxpy(N,-1.0,&v[LOCIDX(startX+0,j+1)],1,tmp2ROW,1);
+        cblas_dscal(N,0.5*dyi,tmp2ROW,1);
+
+        cblas_dsbmv(CblasColMajor,CblasLower,N,0,1.0,tmp3ROW,1,tmp4ROW,1,0.0,tmp5ROW,1);
+        cblas_dsbmv(CblasColMajor,CblasLower,N,0,1.0,tmp1ROW,1,tmp2ROW,1,0.0,tmp7ROW,1);
+        cblas_daxpy(N,-1.0,tmp5ROW,1,tmp7ROW,1);
+
+        cblas_daxpy(N,1.0,tmp6ROW,1,tmp7ROW,1);
+
+        cblas_daxpy(N,dt,tmp7ROW,1,&vnew[LOCIDX(startX+0,j+0)],1);
+
+        cblas_daxpy(N,1.0,&v[LOCIDX(startX+0,j+0)],1,&vnew[LOCIDX(startX+0,j+0)],1);
+        
+
+        delete[] tmp1ROW;
+        delete[] tmp2ROW;
+        delete[] tmp3ROW;
+        delete[] tmp4ROW;
+        delete[] tmp5ROW;
+        delete[] tmp6ROW;
+        delete[] tmp7ROW;
     }
+
+
+    /* for (int j = startY; j < stopY; ++j){
+
+        for (int i = startX; i < stopX; ++i)
+        {
+            vnew[LOCIDX(i, j)] = v[LOCIDX(i, j)] + dt * (
+                    (
+                        (s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) * 0.5 * dxi * ///< Term 1
+                        (v[LOCIDX(i, j - 1)] - v[LOCIDX(i, j + 1)]) * 0.5 * dyi ///< Term 2
+                    ) 
+                    - (
+                        (s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]) * 0.5 * dyi *  ///< Term 3
+                        (v[LOCIDX(i + 1, j)] - v[LOCIDX(i - 1, j)]) * 0.5 * dxi ///< Term 4
+                    ) 
+                    + nu * (v[LOCIDX(i + 1, j)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i - 1, j)]) * dx2i  ///< Term 5
+                    + nu * (v[LOCIDX(i, j - 1)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i, j + 1)]) * dy2i ///< Term 6
+                );
+        }
+    } */
     cg->Solve(vnew, s, GRID);
-    delete[] start;
-    delete[] stop;
 }
-void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm comm)
+void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm &comm)
 {
     GRID = new prl::gridData(Nx, Ny, p, rank, comm);
-    int *start = new int[2]();
-    int *stop = new int[2]();
-    int *cartCoord = new int[2]();
-    GRID->getCartCoord(cartCoord);
-    GRID->getStart(start);
-    GRID->getStop(stop);
     int size = (GRID->getChunky() + 2) * (GRID->getChunkx() + 2);
     v = new double[size]();
     vnew = new double[size]();
-    tmp = new double[size]();
     s = new double[size]();
+    bool wallTop = GRID->getUp()<0;
+    bool wallBottom = GRID->getDown()<0;
+    bool wallLeft = GRID->getLeft()<0;
+    bool wallRight =GRID->getRight()<0;
+    int startX = (!wallLeft ? 0 : 1);
+    int stopX = (!wallRight ? GRID->getChunkx() : GRID->getChunkx() - 1);
+    int intRowPoints = stopX-startX;
 }
 
-/**
- * @brief Frees up allocated memory for simulation data
- *
- */
 void LidDrivenCavity::CleanUp()
 {
     /// if v has been initialised e.g. nolonger nullptr free up all the memory as solver has been called
@@ -388,6 +397,5 @@ void LidDrivenCavity::CleanUp()
         delete[] v;
         delete[] vnew;
         delete[] s;
-        delete[] tmp;
     }
 }
