@@ -9,7 +9,7 @@ OUTPUT_DIR = output
 # include directory for location of headers
 INC_DIR = code/include
 # compiler
-CC = mpicxx -fopenmp
+CC = OMPI_CXX=g++-10 mpicxx -fopenmp
 ifndef NP
 NP = 4
 endif
@@ -18,15 +18,15 @@ ifndef NT
 NT = 4
 endif
 # runner
-RUN = mpiexec
+RUN = mpirun --bind-to none
 # optimisation
-OPT = -O2
+OPT =
 # Dependancy uto generation
 DEPFLAGS = -MMD
 # Complete C flags used in compilation
-CFLAGS = -Wall -Wextra -g $(foreach d,$(INC_DIR),-I$(d)) $(OPT) $(DEPFLAGS)
+CFLAGS = -Wall -g $(foreach d,$(INC_DIR),-I$(d)) $(OPT) $(DEPFLAGS)
 # Complete L flags used in compilation
-LFLAGS = -Wall -Wextra -g
+LFLAGS = -Wall -g
 # libraries utilised by main "solver"
 MAIN_LIBS = blas boost_program_options boost_timer
 # append -l to each

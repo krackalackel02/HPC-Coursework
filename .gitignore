@@ -48,8 +48,9 @@ report/*.bib
 # deps/
 
 # Output files
-*.txt
+# *.txt
 output/
+report/Data/output/
 
 # Backup & temporary files
 *~

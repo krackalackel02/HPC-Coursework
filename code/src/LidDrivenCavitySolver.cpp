@@ -18,12 +18,6 @@
 
 using namespace std;
 namespace po = boost::program_options;
-double measureExecutionTime(boost::timer::cpu_timer& timer, std::function<void()> function) {
-    timer.start();
-    function();
-    timer.stop();
-    return timer.elapsed().wall * 1e-9; // Convert to seconds
-}
 int main(int argc, char *argv[])
 {
     // Start the timer
@@ -146,13 +140,40 @@ int main(int argc, char *argv[])
 
     if(world_rank==0)solver->PrintConfiguration();
 
-    double initTimeSeconds = measureExecutionTime(timer, [&]() { solver->Initialise(world_p, world_rank, cartComm); });
-    double writeICTimeSeconds = measureExecutionTime(timer, [&]() { solver->WriteSolution("output/ic.txt"); });
-    double integTimeSeconds = measureExecutionTime(timer, [&]() { solver->Integrate(); });
-    double writeSOLTimeSeconds = measureExecutionTime(timer, [&]() { solver->WriteSolution("output/final.txt"); });
+    timer.start();
+    solver->Initialise(world_p, world_rank, cartComm);
+    double initTimeSeconds = timer.elapsed().wall * 1e-9; // Convert to seconds
+
+    timer.start();
+    solver->WriteSolution("output/ic.txt");
+    double writeICTimeSeconds = timer.elapsed().wall * 1e-9; // Convert to seconds
+
+    timer.start();
+    solver->Integrate();
+    double integTimeSeconds = timer.elapsed().wall * 1e-9; // Convert to seconds
+
+    timer.start();
+    solver->WriteSolution("output/final.txt");
+    double writeSOLTimeSeconds = timer.elapsed().wall * 1e-9; // Convert to seconds
 
     if(world_rank==0)printf("Initialising: %6fs WriteIC: %6fs Integrate: %6fs WriteSOL: %6fs\n",initTimeSeconds,writeICTimeSeconds,integTimeSeconds,writeSOLTimeSeconds);
     if(world_rank==0)printf("Total: %6fs\n",(initTimeSeconds+writeICTimeSeconds+integTimeSeconds+writeSOLTimeSeconds));
+    if (world_rank == 0) {
+        FILE *fp;
+        fp = fopen("./timings.txt", "a");
+        if (fp == NULL) {
+            printf("Error opening file!\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        // fprintf(fp, "%2d MPI ranks / %2d OMP threads\n",world_size,ThreadNum);
+        fprintf(fp, "%2d |  %2d |  %6fs  |  %6f|  %6fs  |  %6fs |  %6fs\n",
+                world_size,ThreadNum,initTimeSeconds, writeICTimeSeconds, integTimeSeconds, writeSOLTimeSeconds,
+                initTimeSeconds + writeICTimeSeconds + integTimeSeconds + writeSOLTimeSeconds);
+        // fprintf(fp, "Total: %6fs\n", initTimeSeconds + writeICTimeSeconds + integTimeSeconds + writeSOLTimeSeconds);
+
+        fclose(fp);
+    }
 
     delete solver;
     MPI_Comm_free(&cartComm);

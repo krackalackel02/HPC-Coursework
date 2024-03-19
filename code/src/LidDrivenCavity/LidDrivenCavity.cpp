@@ -171,7 +171,7 @@ void LidDrivenCavity::WriteSolution(std::string file)
     double *MPIu0 = new double[size]();
     double *MPIu1 = new double[size]();
     GRID->exchangeGhost(s);
-    #pragma omp parallel for schedule(static) collapse(2)
+    #pragma omp parallel for schedule(static) 
     for (int j = (!wallTop ? 0 : 1); j < (!wallBottom ? Chunky : Chunky - 1); ++j)
     {
         for (int i = (!wallLeft ? 0 : 1); i < (!wallRight ? Chunkx : Chunkx - 1); ++i)
@@ -183,7 +183,6 @@ void LidDrivenCavity::WriteSolution(std::string file)
             MPIu1[LOCIDX(i, j)] = -(s[LOCIDX(i + 1, j)] - s[LOCIDX(i, j)]) / dx;
         }
     }
-    GRID->edgeZero(s);
     if (wallTop)
     {
         #pragma omp parallel for schedule(static) 
