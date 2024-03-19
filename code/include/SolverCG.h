@@ -29,6 +29,7 @@ public:
      * @param pNy Number of y points
      * @param pdx X step size
      * @param pdy Y step size
+     * @param GRID prl::dataGrid object storing info like chunk size and global position and neighbours
      */
     SolverCG(int pNx, int pNy, double pdx, double pdy,prl::gridData* GRID);
     /**
@@ -41,23 +42,25 @@ public:
      * 
      * @param b Vector Result B
      * @param x Vector State X0, initial guess for solution on each time step
+     * @param GRID prl::dataGrid object storing info like chunk size and global position and neighbours
      */
     void Solve(double* b, double* x,prl::gridData* GRID);
 
 private:
-    double dx; /// X step size
-    double dy; /// Y step size
-    int Nx; /// Number of x points
-    int Ny; /// Number of y points
-    double* r=nullptr; /// Vector representing error in current solution, R: R0 = B-A*X0, Rk+1 = Rk - alphak*Pk
-    double* p=nullptr; /// Vector representing gradient in solution e.g. delta to next guess
-    double* z=nullptr; /// Vector representing the preconditioned R vector used to updated temporary state
-    double* t=nullptr; /// Vector representing temporary state
+    double dx; ///< X step size
+    double dy; ///< Y step size
+    int Nx; ///< Number of x points
+    int Ny; ///< Number of y points
+    double* r=nullptr; ///< Vector representing error in current solution, R: R0 = B-A*X0, Rk+1 = Rk - alphak*Pk
+    double* p=nullptr; ///< Vector representing gradient in solution e.g. delta to next guess
+    double* z=nullptr; ///< Vector representing the preconditioned R vector used to updated temporary state
+    double* t=nullptr; ///< Vector representing temporary state
     /**
      * @brief This function applies the operation to an input: A*p = t
      * 
      * @param p Vector representing gradient in solution e.g. delta to next guess
      * @param t Vector representing temporary state
+     * @param GRID prl::dataGrid object storing info like chunk size and global position and neighbours
      */
     void ApplyOperator(double* p, double* t,prl::gridData* GRID);
     /**
@@ -65,12 +68,14 @@ private:
      * 
      * @param in residual error vector
      * @param out preconsitioned residual error vector
+     * @param GRID prl::dataGrid object storing info like chunk size and global position and neighbours
      */
     void Precondition(double* in, double* out,prl::gridData* GRID) ;
     /**
      * @brief Sets initial vorticity at the "walls" to be 0
      * 
-     * @param p Vector representing gradient in solution e.g. delta to next guess
+     * @param inout Vector representing gradient in solution e.g. delta to next guess
+     * @param GRID prl::dataGrid object storing info like chunk size and global position and neighbours
      */
     void ImposeBC(double* inout,prl::gridData* GRID) ;
 };

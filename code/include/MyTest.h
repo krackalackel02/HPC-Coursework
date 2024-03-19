@@ -1,28 +1,66 @@
+/**
+ * @file MyTest.h
+ * @author Paul Kallarackel (paulkallarackel@gmail.com)
+ * @brief File defines the global fixture to use parallel testing
+ * @version 0.1
+ * @date 2024-03-20
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
-#ifndef TEST_H
-#define TEST_H
-
-#define IDX(I, J) ((J) * Nx + (I))
-
 #include <string>
 #include <mpi.h>
 
-bool compareSolution(const double *numerical, const double *analytical, int size, double tol);
-bool compare( double e, double tol);
+/// Holds some fucntions used for testing checking
+namespace myTest
+{
+    /**
+     * @brief Function compares ordered vector against another and computes 2-norm against tolerance
+     * 
+     * @param numerical Numerical / Computed solution vector
+     * @param analytical Analtical / Expected solution vector
+     * @param size Size of vectors passed
+     * @param tol Tolerance to check against
+     * @return true 
+     * @return false 
+     */
+    bool compareSolution(const double *numerical, const double *analytical, int size, double tol);
 
-struct MPIFixture {
+    /**
+     * @brief Compares Error against specificed tolerance having precomputed error
+     * 
+     * @param e Error
+     * @param tol Tolerance
+     * @return true 
+     * @return false 
+     */
+    bool compare(double e, double tol);
+
+
+}
+
+/// Used for instantiation of unit test file with MPI once
+struct MPIFixture
+{
 public:
+
+    /**
+     * @brief Construct a new MPIFixture object used to initialise  MPI and Open MP threads for all tests once
+     * 
+     */
     explicit MPIFixture();
 
+    /**
+     * @brief Destroy the MPIFixture object
+     * 
+     */
     ~MPIFixture();
 
-    int argc;
-    char **argv;
-    int world_p;
-    int world_size;
-    int world_rank;
-    std::string msg = "";
-    MPI_Comm cartComm;
+    int argc; /**< main file arguements*/
+    char **argv; /**< main file arguements*/
+    int world_p; /**< square root of number of ranks*/
+    int world_size; /**< number of ranks*/
+    int world_rank; /**< current rank number*/
+    std::string msg = ""; /**< err message prop*/
 };
-
-#endif // TEST_H

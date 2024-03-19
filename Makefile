@@ -1,6 +1,6 @@
 # build directory for *.d and *.o files
 BUILD_DIR = build
-# bin directory for all built executables
+# bin directory for all built executables  - write "." for root 
 BIN_DIR = bin
 # entry point for all source files
 CODE_DIR = code
@@ -43,6 +43,8 @@ SOLVER_OUT_NAME = solver
 TEST_FILE = UnitTest
 # main test final executable name
 TEST_OUT_NAME = unit-tests
+# executable extension
+OUT_EXE = .out
 # phony target to build all main files and any other desired "main" files
 PHONY_BINARY = $(SOLVER_FILE)
 # phony target to build all test files and any other desired "test" files
@@ -94,23 +96,27 @@ VPATH = $(BUILD_DIR) $(shell find $(CODE_DIR) -type d)
 		solver \
 		unittests \
         required_dir \
-        tree
+        tree \
+		analyze
 
 
 # ensuring directory required for build process are instantiated
 default: required_dir solver
+analyze: required_dir solver
+	export OMP_NUM_THREADS=$(shell echo 1);\
+	collect -o $(OUTPUT_DIR)/data.er $(RUN) -np 1 $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE)
 # rule to build and run main solver with set threads and procs
 runsolver: required_dir solver
 	export OMP_NUM_THREADS=$(shell echo $(NT));\
-	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME);\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE);\
 # rule to build and run unittests with set threads and procs
 rununittests: required_dir unittests
 	export OMP_NUM_THREADS=$(shell echo $(NT));\
-	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME);
+	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE);
 dev: required_dir solver unittests
 	export OMP_NUM_THREADS=$(shell echo $(NT));\
-	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME);\
-	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME);
+	$(RUN) -np $(NP) $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE);\
+	$(RUN) -np $(NP) $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE);
 
 # target to build all solver and test executables
 all:required_dir $(TARGETS)
@@ -145,46 +151,46 @@ debug:
 solver:required_dir $(BUILD_DIR)/$(SOLVER_FILE).o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***MAIN EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
-	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE)"
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE)
 	@echo "-------------------------------\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt *num threads*\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE) --nt *num threads*\"\n"
 
 # main "test" executable
 unittests:required_dir $(BUILD_DIR)/$(TEST_FILE).o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***Test EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
-	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
+	@echo "Combining \n\t $(filter-out $<,$^) \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)"
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $(filter-out $<,$^))) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)
 	@echo "-------------------------------\n"
 	@echo "Make sure to set OMP_NUM_THREADS for omp testing and not default vals\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(TEST_OUT_NAME)\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)\"\n"
 
 # filters main "solver" from TARGETS as special output name and libs needed
 $(filter %$(SOLVER_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***MAIN EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)"
-	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)
+	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE)"
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE)
 	@echo "-------------------------------\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME) --nt *num threads*\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(SOLVER_OUT_NAME)$(OUT_EXE) --nt *num threads*\"\n"
 
 # filters main "test" from TARGETS as special output name and libs needed
 $(filter %$(TEST_FILE), $(TARGETS)): %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES) $(TEST_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***Test EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)"
-	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)
+	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)"
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(TEST_LIB_FLAGS) -o $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)
 	@echo "-------------------------------\n"
 	@echo "Make sure to set OMP_NUM_THREADS for omp testing and not default vals\n"
-	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(TEST_OUT_NAME)\"\n"
+	@echo "You can run the solver like \"mpiexec -np *process num* $(BIN_DIR)/$(TEST_OUT_NAME)$(OUT_EXE)\"\n"
 
 # remaining "main" file targets to be built with no special output name
 $(filter-out %$(SOLVER_FILE) %$(TEST_FILE), $(TARGETS)):  %: $(BUILD_DIR)/%.o $(MAIN_OBJ_FILES)
 	@echo "\n-------------------------------"
 	@echo "***NON-MAIN EXE FILE BUILD:***\n"
-	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(notdir $@)"
-	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(notdir $@)
+	@echo "Combining \n\t $^ \n into executable \n\t $(BIN_DIR)/$(notdir $(OUT_EXE)$@)"
+	$(CC) $(LFLAGS) $(patsubst %, $(BUILD_DIR)/%,$(notdir $^)) $(MAIN_LIB_FLAGS) -o $(BIN_DIR)/$(notdir $(OUT_EXE)$@)
 	@echo "-------------------------------\n"
 
 # Rebuilds any prebuilt object files based on triggers in change in dep. header file or associated cpp file or even fresh build
@@ -262,12 +268,12 @@ git-commit:
 ifndef MSG
 	$(error MSG variable is not set. Usage: make git-commit MSG="Your commit message")
 else
-	git checkout main
+	git checkout data
 	git add .
 	git commit -m "${MSG}"
 endif
 git-push:
-	git push origin main --tags
+	git push origin data --tags
 git-publish-docs:
 	git subtree push --prefix docs/html origin gh-pages
 git-log:

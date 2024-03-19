@@ -5,7 +5,7 @@
 *.obj
 *.elf
 *.d
-
+*.er
 # Precompiled Headers
 *.gch
 *.pch
@@ -48,7 +48,7 @@ report/*.bib
 # deps/
 
 # Output files
-# *.txt
+/*.txt
 output/
 report/Data/output/
 

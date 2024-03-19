@@ -271,15 +271,15 @@ _You can view the document below:_
         - [x]  Document all of source code
         - [x]  Compile with "doc" Makefile target
     - [ ]  Task 4.
-        - [ ]  Write Unit Tests
+        - [x]  Write Unit Tests
           - [x]  At least one test for Linear CG Solver Class
           - [x]  At least one test for lid-driven cavity class
-        - [ ]  Add relevent documentation within test files
-        - [ ]  **Report:** Provide brief description 
+        - [x]  Add relevent documentation within test files
+        - [x]  **Report:** Provide brief description 
         - [x]  Compile with "unittests" Makefile target
     - [ ]  Task 5.
         - [ ]  Implement MPI
-          - [ ]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
+          - [x]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
             - [x]  Implement distribution of grid into ranks for cart grid
             - [x]  Implement exchange of ghost values at boundaries
             - [x]  Implement New data structure for vorticity
@@ -288,24 +288,24 @@ _You can view the document below:_
               - [x]  Implement regather of data
           - [x]  Other choices of P may be considered erroneous and your code should terminate.
           - [x]  Parallelisation should be achieved using domain decomposition with each dimension of the domain partitioned p ways.
-          - [ ]  **Report:** Provide a scaling plot showing the speedup of the code when run in parallel, relative to the case in serial, up to P = 16 ranks. 
-          - [ ]  **Report:** Concisely summarise your approach to parallelising the code with MPI and the changes you needed to make to convert the code to run in parallel.
-          - [ ]  **Report:** How did you try to ensure the work done by each process was as balanced as possible?
-          - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
+          - [x]  **Report:** Provide a scaling plot showing the speedup of the code when run in parallel, relative to the case in serial, up to P = 16 ranks. 
+          - [x]  **Report:** Concisely summarise your approach to parallelising the code with MPI and the changes you needed to make to convert the code to run in parallel.
+          - [x]  **Report:** How did you try to ensure the work done by each process was as balanced as possible?
+          - [x]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
     - [ ]  Task 6.
         - [ ]  Implement OpenMP
           - [x]  Add multi-threading to the code using OpenMP
           - [x]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
-          - [ ]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
-          - [ ]  **Report:** Concisely summarise your approach to parallelising the code with OpenMP.
-          - [ ]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why?
+          - [x]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
+          - [x]  **Report:** Concisely summarise your approach to parallelising the code with OpenMP.
+          - [x]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why?
     - [ ]  Task 7.
         - [ ]  Optimise your code using a profiler.
-          - [ ]  Use one MPI process and one OpenMP thread for this part.
-          - [ ]  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
-          - [ ]  **Report:** List optimisations you have made to the code to improve performance, and quantify the change observed.
+          - [x]  Use one MPI process and one OpenMP thread for this part.
+          - []  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
+          - [x]  **Report:** List optimisations you have made to the code to improve performance, and quantify the change observed.
     - [ ]  Task 8.
-        - [ ]  Use good coding practices (code layout, comments, etc) throughout your code.
+        - [x]  Use good coding practices (code layout, comments, etc) throughout your code.
 
 See the [open issues](https://github.com/krackalackel02/HPC-Coursework/issues) for a full list of proposed features (and known issues).
 
