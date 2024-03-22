@@ -275,8 +275,6 @@ endif
 git-push:
 	git push origin main --tags
 git-publish-docs:
-    # Move Report.pdf to docs/html if it exists
-	mv -f report/Report.pdf docs/html/ || true
     # Perform the subtree push
 	git subtree push --prefix docs/html origin gh-pages
 
