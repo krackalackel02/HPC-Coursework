@@ -44,7 +44,7 @@ TEST_FILE = UnitTest
 # main test final executable name
 TEST_OUT_NAME = unit-tests
 # executable extension
-OUT_EXE = .out
+OUT_EXE =
 # phony target to build all main files and any other desired "main" files
 PHONY_BINARY = $(SOLVER_FILE)
 # phony target to build all test files and any other desired "test" files

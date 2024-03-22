@@ -130,6 +130,11 @@ void LidDrivenCavity::WriteSolution(std::string file)
         f.close();
     }
     std::stringstream ss; // stringstream to collect data
+    /**
+     * syncronously iterate thorugh global grid 
+     * and check if coord exists in rank, if so print it to maintain order.
+     * 
+     */
     for (int i = 0; i < Nx; ++i)
     {
         for (int j = Ny - 1; j >= 0; --j)
@@ -256,6 +261,17 @@ void LidDrivenCavity::Advance()
     #pragma omp parallel for schedule(static) private(tmp1ROW,tmp2ROW)
     for (int j = startY; j < stopY; ++j)
     {
+        /** 
+         * #pragma omp parallel for schedule(static) collapse(2)
+         * for (int j = startY; j < stopY; ++j)
+         * {
+         *     for (int i = startX; i < stopX; ++i)
+         *     {
+         *         v[LOCIDX(i, j)] = dx2i * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) ///< term 1
+         *         + 1.0 / dy / dy * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]); ///< term 2
+         *     }
+         * } 
+        */
         tmp1ROW = new double[N]();
         tmp2ROW = new double[N]();
         cblas_dscal(N, 0.0, &v[LOCIDX(startX+0,j+0)], 1);
@@ -275,21 +291,33 @@ void LidDrivenCavity::Advance()
         delete[] tmp2ROW;
         
     }
-    /* #pragma omp parallel for schedule(static) collapse(2)
-    for (int j = startY; j < stopY; ++j)
-    {
-        for (int i = startX; i < stopX; ++i)
-        {
-            v[LOCIDX(i, j)] = dx2i * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) ///< term 1
-            + 1.0 / dy / dy * (2.0 * s[LOCIDX(i, j)] - s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]); ///< term 2
-        }
-    } */
+    
     
     GRID->exchangeGhost(v);
     // Time advance vorticity - Obtained using equations 11 on "brief.pdf"
     #pragma omp parallel for schedule(static) private(tmp1ROW,tmp2ROW,tmp3ROW,tmp4ROW,tmp5ROW,tmp6ROW,tmp7ROW)
     for (int j = startY; j < stopY; ++j)
     {
+        /** 
+         * for (int j = startY; j < stopY; ++j){
+         *    
+         *    for (int i = startX; i < stopX; ++i)
+         *    {
+         *        vnew[LOCIDX(i, j)] = v[LOCIDX(i, j)] + dt * (
+         *                (
+         *                    (s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) * 0.5 * dxi * ///< Term 1
+         *                    (v[LOCIDX(i, j - 1)] - v[LOCIDX(i, j + 1)]) * 0.5 * dyi ///< Term 2
+         *                ) 
+         *                - (
+         *                    (s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]) * 0.5 * dyi *  ///< Term 3
+         *                    (v[LOCIDX(i + 1, j)] - v[LOCIDX(i - 1, j)]) * 0.5 * dxi ///< Term 4
+         *                ) 
+         *                + nu * (v[LOCIDX(i + 1, j)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i - 1, j)]) * dx2i  ///< Term 5
+         *                + nu * (v[LOCIDX(i, j - 1)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i, j + 1)]) * dy2i ///< Term 6
+         *            );
+         *    }
+         * }
+         *  */
         tmp1ROW = new double[N]();
         tmp2ROW = new double[N]();
         tmp3ROW = new double[N]();
@@ -349,24 +377,6 @@ void LidDrivenCavity::Advance()
     }
 
 
-    /* for (int j = startY; j < stopY; ++j){
-
-        for (int i = startX; i < stopX; ++i)
-        {
-            vnew[LOCIDX(i, j)] = v[LOCIDX(i, j)] + dt * (
-                    (
-                        (s[LOCIDX(i + 1, j)] - s[LOCIDX(i - 1, j)]) * 0.5 * dxi * ///< Term 1
-                        (v[LOCIDX(i, j - 1)] - v[LOCIDX(i, j + 1)]) * 0.5 * dyi ///< Term 2
-                    ) 
-                    - (
-                        (s[LOCIDX(i, j - 1)] - s[LOCIDX(i, j + 1)]) * 0.5 * dyi *  ///< Term 3
-                        (v[LOCIDX(i + 1, j)] - v[LOCIDX(i - 1, j)]) * 0.5 * dxi ///< Term 4
-                    ) 
-                    + nu * (v[LOCIDX(i + 1, j)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i - 1, j)]) * dx2i  ///< Term 5
-                    + nu * (v[LOCIDX(i, j - 1)] - 2.0 * v[LOCIDX(i, j)] + v[LOCIDX(i, j + 1)]) * dy2i ///< Term 6
-                );
-        }
-    } */
     cg->Solve(vnew, s, GRID);
 }
 void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm &comm)
@@ -376,13 +386,6 @@ void LidDrivenCavity::CartInit(int p, int rank, MPI_Comm &comm)
     v = new double[size]();
     vnew = new double[size]();
     s = new double[size]();
-    bool wallTop = GRID->getUp()<0;
-    bool wallBottom = GRID->getDown()<0;
-    bool wallLeft = GRID->getLeft()<0;
-    bool wallRight =GRID->getRight()<0;
-    int startX = (!wallLeft ? 0 : 1);
-    int stopX = (!wallRight ? GRID->getChunkx() : GRID->getChunkx() - 1);
-    int intRowPoints = stopX-startX;
 }
 
 void LidDrivenCavity::CleanUp()
@@ -392,7 +395,7 @@ void LidDrivenCavity::CleanUp()
     {
 
         delete GRID;
-        // Stop double deletion
+        /// Stop double deletion
         GRID = nullptr;
         delete[] v;
         delete[] vnew;

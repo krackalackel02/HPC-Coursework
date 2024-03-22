@@ -21,7 +21,7 @@ do
         echo "Running with $Np MPI ranks"
         echo "Running with $Nt OMP threads"
         # Run the program
-        mpirun --bind-to none -np $Np ../../bin/solver.out --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
+        mpirun --bind-to none -np $Np ../../bin/solver --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
         echo "--------------------------------------------"  
 done
 # Reset Np
@@ -32,7 +32,7 @@ echo "Running with $Np MPI ranks"
 echo "Running with $Nt OMP threads"
 export OMP_NUM_THREADS=$Nt
 # Run the program
-mpirun --bind-to none -np $Np ../../solver.out --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
+mpirun --bind-to none -np $Np ../../solver --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
 echo "--------------------------------------------"
 for (( i=1; i<=8; i=i+1 ))
 do
@@ -41,6 +41,6 @@ do
     echo "Running with $Nt OMP threads"
     export OMP_NUM_THREADS=$Nt
     # Run the program
-    mpirun --bind-to none -np $Np ../../bin/solver.out --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
+    mpirun --bind-to none -np $Np ../../bin/solver --Lx $Lx --Ly $Ly --Nx $Nx --Ny $Ny --Re $Re --dt $dt --T $T
     echo "--------------------------------------------"  
 done
