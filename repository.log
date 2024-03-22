@@ -1,3 +1,22 @@
+commit 8d3507a9b04dd66b668cf2afe7c8131e3a9f1cb5
+Author: Paul Kallarackel <108292404+krackalackel02@users.noreply.github.com>
+Date:   Fri Mar 22 12:57:52 2024 +0000
+
+    edited ref in tex
+
+M	report/AppendixTest/AppendixTest.tex
+M	report/Data/myPlot.m
+M	report/Questions/q4.tex
+M	report/Report.tex
+
+commit 6b5b4e09f3ed9c03b7f1b4689962d2956ede3b90
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 22 12:43:55 2024 +0000
+
+    Updated Log
+
+M	repository.log
+
 commit da043b6d8392dc986a883faa02a75a01916becfb
 Author: Paul Kallarackel <paulkallarackel@gmail.com>
 Date:   Fri Mar 22 12:43:44 2024 +0000
