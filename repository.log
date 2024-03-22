@@ -1,3 +1,181 @@
+commit da043b6d8392dc986a883faa02a75a01916becfb
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 22 12:43:44 2024 +0000
+
+    final submission ready
+
+M	Makefile
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/SolverCG/SolverCG.cpp
+M	report/Data/run_solver.sh
+D	report/Data/timings.txt
+D	report/Data/timingsLx10Ly10Nx201Ny201Re10dt0_005T5.txt
+D	report/Data/timingsLx10Ly10Nx201Ny201Re10dt0_005T5_pre.txt
+D	report/Data/timingsLx1Ly1Nx101Ny101Re500dt0_005T5_pre.txt
+D	report/Data/timingsLx1Ly1Nx201Ny201Re1000dt0_005T5_pre.txt
+D	report/Data/timingsLx1Ly1Nx201Ny201Re10dt0_00005T0_005.txt
+D	report/Data/timingsLx1Ly1Nx201Ny201Re10dt0_00005T0_005_pre.txt
+D	report/Data/timingsLx1Ly1Nx51Ny51Re100dt0_01T10.txt
+D	report/Data/timingsLx1Ly1Nx51Ny51Re100dt0_01T10_pre.txt
+
+commit 20601bb2e7bb7d7bcfd69caebebe100651c10237
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Tue Mar 19 14:29:33 2024 +0000
+
+    Finished writing Report
+    
+    Finished plotting and writing report
+    
+    Note: txt files came from data branch
+    
+    Finished plotting and writing report
+    
+    added appendix
+    
+    Updated Plotting Script to just need file name and update in report for new images as not in repo
+    
+    added in plots and data scripts and some writing
+    
+    added in more code and writing
+    
+    finished report
+
+M	.gitignore
+M	Makefile
+M	README.md
+A	report/AppendixLDC/AppendixLDC.tex
+A	report/AppendixMATLAB/AppendixMATLAB.tex
+A	report/AppendixParallel/AppendixParallel.tex
+A	report/AppendixSCG/AppendixSCG.tex
+A	report/AppendixSupport/AppendixSupport.tex
+A	report/AppendixTest/AppendixTest.tex
+A	report/Data/disp_transform.m
+A	report/Data/myPlot.m
+A	report/Data/prettier.m
+M	report/Data/run_solver.sh
+M	report/Data/timings.txt
+A	report/Data/timingsLx10Ly10Nx201Ny201Re10dt0_005T5.txt
+A	report/Data/timingsLx1Ly1Nx101Ny101Re500dt0_005T5.txt
+A	report/Data/timingsLx1Ly1Nx201Ny201Re1000dt0_005T5.txt
+A	report/Data/timingsLx1Ly1Nx201Ny201Re10dt0_00005T0_005.txt
+A	report/Data/timingsLx1Ly1Nx51Ny51Re100dt0_01T10.txt
+M	report/Default/preamble.tex
+M	report/Default/title.tex
+A	report/Images/CartGrid.png
+A	report/Images/ExchangeDiagram.png
+A	report/Images/Padding.png
+A	report/Images/VirtualTopology.png
+A	report/Images/optim.png
+A	report/Images/time.png
+D	report/Questions/q1.tex
+A	report/Questions/q4.tex
+A	report/Questions/q5.tex
+A	report/Questions/q6.tex
+A	report/Questions/q7.tex
+A	report/Questions/summary.tex
+D	report/Questions/unit_test.tex
+M	report/Report.tex
+
+commit a9acf00be4da17318485974b9c4eb0035da18fb0
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Tue Mar 19 14:32:48 2024 +0000
+
+    Data anlysis complete
+    
+    Note: added profiling, separate dout tests files, added MPI free etc
+    
+    Data Analysis Complete
+    
+    ran scalar sim
+    
+    added new data files
+    
+    separated out test files further for separation fo concerns
+    
+    placed out files into root instead and gave exetention adustment option
+    
+    added comments to modified files
+    
+    fixed MPI Free
+    
+    edit solver script
+    
+    added docs, implemented profiled changes: blas into solver and ldc
+    
+    edites some files and finished dat aanlysis
+
+M	.gitignore
+M	Makefile
+M	README.md
+M	code/include/LidDrivenCavity.h
+M	code/include/MyTest.h
+M	code/include/ParallelFunc.h
+M	code/include/SolverCG.h
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/ParallelFunc/ParallelFunc.cpp
+M	code/src/SolverCG/SolverCG.cpp
+A	code/test/LidDrivenCavity/LDCPrintConfigTest.cpp
+A	code/test/LidDrivenCavity/LDCWriteSolTest.cpp
+D	code/test/LidDrivenCavity/LidDrivenCavityTest.cpp
+M	code/test/MyTest/MyTest.cpp
+R050	code/test/SolverCG/SolverCGTest.cpp	code/test/SolverCG/SCGAnalyticalTest.cpp
+A	code/test/SolverCG/SCGZeroTest.cpp
+M	code/test/UnitTest.cpp
+M	docs/Doxyfile
+M	report/Data/run_solver.sh
+M	report/Data/timings.txt
+A	report/Data/timingsLx10Ly10Nx201Ny201Re10dt0_005T5_pre.txt
+D	report/Data/timingsLx1Ly1Nx100Ny100Re1000dt0_01T5.txt
+A	report/Data/timingsLx1Ly1Nx101Ny101Re500dt0_005T5_pre.txt
+A	report/Data/timingsLx1Ly1Nx201Ny201Re1000dt0_005T5_pre.txt
+A	report/Data/timingsLx1Ly1Nx201Ny201Re10dt0_00005T0_005_pre.txt
+A	report/Data/timingsLx1Ly1Nx51Ny51Re100dt0_01T10_pre.txt
+
+commit 67c9ccaa88f21950cb05fdd84af3629224f15a39
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Tue Mar 19 14:26:34 2024 +0000
+
+    made scaling runner script and reintroduced blas
+
+M	.gitignore
+M	Makefile
+M	code/src/LidDrivenCavity/LidDrivenCavity.cpp
+M	code/src/LidDrivenCavitySolver.cpp
+M	code/src/SolverCG/SolverCG.cpp
+A	report/Data/run_solver.sh
+A	report/Data/timings.txt
+A	report/Data/timingsLx1Ly1Nx100Ny100Re1000dt0_01T5.txt
+
+commit 9541c642e90164c801ce25fcf07ac683e2e27afb
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 21:30:15 2024 +0000
+
+    renamed Main test file to UnitTest
+
+M	Makefile
+R100	code/test/Test.cpp	code/test/UnitTest.cpp
+
+commit fe8b70648552f54d9f5d3abe11ac185e131604bb
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 21:26:40 2024 +0000
+
+    Distributed some test logic into sep header file MyTest.h
+
+R100	code/include/Test.h	code/include/MyTest.h
+M	code/test/LidDrivenCavity/LidDrivenCavityTest.cpp
+A	code/test/MyTest/MyTest.cpp
+M	code/test/SolverCG/SolverCGTest.cpp
+M	code/test/Test.cpp
+
+commit 0bd3153bcb72bcf9d64d57bde630602c86124998
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Mon Mar 18 21:07:33 2024 +0000
+
+    Updated Log
+
+M	repository.log
+
 commit 099524fc7631afbacb81899d26e2699d8579093e
 Author: Paul Kallarackel <paulkallarackel@gmail.com>
 Date:   Mon Mar 18 21:06:48 2024 +0000
