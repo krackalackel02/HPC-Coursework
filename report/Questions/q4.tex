@@ -8,7 +8,7 @@ The tests written for the LDC were deigned to validate the public methods the us
 The setters and getters such as ``SetDomainSize'' were not tested due to their simplistic nature.
 If more complexity was used in the afformentioned methods then they also would have been tested. 
 \subsubsection{LidDrivenCavity::PrintConfiguration()}
-The ``PrintConfiguration'' test utilised a stream-buffer as shown in \code\ref{lst:LidDrivenCavityTest}. After rerouting the output stream, the printed information
+The ``PrintConfiguration'' test utilised a stream-buffer as shown in \code\ref{lst:LDCPrintConfigTest}. After rerouting the output stream, the printed information
 is extracted using a pattern search, via a regular expression. Finally, a vector is stored contained the printed values and the expected value.
 Using the ``compareSolution()'' defined in \code\ref{lst:MyTest} the 2-norm or the error is computed and checked against a tolerance of 1e-3.
 \subsubsection{LidDrivenCavity::WriteSolution()}
@@ -39,7 +39,7 @@ This input is found below in \eq\ref{eq:vort}.
     \omega = \pi^2(k^2+l^2)\sin\bigl(\pi * k * x\bigr)\sin\bigl(\pi * l * y\bigr),\quad k = \frac{2\pi}{L_x},\quad l = \frac{2\pi}{L_y}
     \label{eq:vort}
 \end{equation}
-As seen in \code\ref{lst:SolverCGTest} the domain used was of size 6,000,000 grid points and could be run with a variable number of MPI ranks as shown in \code\ref{lst:MyTest} through the Boost global fixture.
+As seen in \code\ref{lst:SCGAnalyticalTest} the domain used was of size 6,000,000 grid points and could be run with a variable number of MPI ranks as shown in \code\ref{lst:MyTest} through the Boost global fixture.
 \subsubsection{SolverCG::Solve() - Zero Input}
 Constrastingly, the ``Zero Input'' test was used to ensure that during the development of the parallelisation, the solver still gave back a zero vector.
 This functionality  was implemented to avoid errors from failing to converge with such a small vorticity input.
