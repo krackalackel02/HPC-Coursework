@@ -1,0 +1,7 @@
+<map id="/home/pjk21/VSCODE WORK/HPC&#45;Coursework/code/include/SolverCG.h" name="/home/pjk21/VSCODE WORK/HPC&#45;Coursework/code/include/SolverCG.h">
+<area shape="rect" id="node1" title=" " alt="" coords="375,5,559,61"/>
+<area shape="rect" id="node2" href="$LidDrivenCavity_8cpp.html" title="This file implements the methods found in LidDrivenCavity.h." alt="" coords="5,109,193,180"/>
+<area shape="rect" id="node3" href="$SolverCG_8cpp.html" title="This file details the methods used to solve the system of equations in space for the lid&#45;drigven cavi..." alt="" coords="218,117,453,173"/>
+<area shape="rect" id="node4" href="$SCGAnalyticalTest_8cpp.html" title="Contains unit&#45;test for analytical sinusoidal function." alt="" coords="476,109,723,180"/>
+<area shape="rect" id="node5" href="$SCGZeroTest_8cpp.html" title="Contains unit test for zero input vorticity." alt="" coords="746,109,957,180"/>
+</map>

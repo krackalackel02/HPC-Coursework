@@ -1,0 +1,5 @@
+<map id="LidDrivenCavity" name="LidDrivenCavity">
+<area shape="rect" id="node1" title="This class sets up the initial conditions and solves the simulation." alt="" coords="52,95,179,121"/>
+<area shape="rect" id="node2" href="$structprl_1_1gridData.html" title="Local and Global data object with rank&#45;to&#45;rank comms." alt="" coords="5,5,108,32"/>
+<area shape="rect" id="node3" href="$classSolverCG.html" title="This class sets up the solver using the conjugate gradient method." alt="" coords="133,5,215,32"/>
+</map>

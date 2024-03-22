@@ -1,0 +1,13 @@
+<map id="/home/pjk21/VSCODE WORK/HPC&#45;Coursework/code/include/ParallelFunc.h" name="/home/pjk21/VSCODE WORK/HPC&#45;Coursework/code/include/ParallelFunc.h">
+<area shape="rect" id="node1" title="Function details main MPI Conceptual grid implemntation Contains logic to distribute Nx*Ny grid among..." alt="" coords="451,5,653,61"/>
+<area shape="rect" id="node2" href="$LidDrivenCavity_8h.html" title=" " alt="" coords="703,117,929,173"/>
+<area shape="rect" id="node3" href="$LidDrivenCavity_8cpp.html" title="This file implements the methods found in LidDrivenCavity.h." alt="" coords="265,228,453,299"/>
+<area shape="rect" id="node9" href="$SolverCG_8h.html" title=" " alt="" coords="460,117,644,173"/>
+<area shape="rect" id="node10" href="$SolverCG_8cpp.html" title="This file details the methods used to solve the system of equations in space for the lid&#45;drigven cavi..." alt="" coords="5,235,240,291"/>
+<area shape="rect" id="node11" href="$ParallelFunc_8cpp.html" title=" " alt="" coords="954,109,1134,180"/>
+<area shape="rect" id="node4" href="$LidDrivenCavitySolver_8cpp.html" title="This is the main LDC file which uses methods defined in LidDrivenCavity.h and SolverCG...." alt="" coords="1420,235,1676,291"/>
+<area shape="rect" id="node5" href="$LDCPrintConfigTest_8cpp.html" title="This file contains unit&#45;test for print config fucntion on LDC class." alt="" coords="983,228,1177,299"/>
+<area shape="rect" id="node6" href="$LDCWriteSolTest_8cpp.html" title="Contains unit test for write solution on LDC class." alt="" coords="1201,228,1396,299"/>
+<area shape="rect" id="node7" href="$SCGAnalyticalTest_8cpp.html" title="Contains unit&#45;test for analytical sinusoidal function." alt="" coords="711,228,958,299"/>
+<area shape="rect" id="node8" href="$SCGZeroTest_8cpp.html" title="Contains unit test for zero input vorticity." alt="" coords="477,228,688,299"/>
+</map>
