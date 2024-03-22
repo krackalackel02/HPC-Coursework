@@ -1,3 +1,27 @@
+commit 229549a2dbd9af71cdd432eab9460bf6f065dd26
+Author: Paul Kallarackel <108292404+krackalackel02@users.noreply.github.com>
+Date:   Fri Mar 22 13:39:03 2024 +0000
+
+    updated makefile
+
+M	Makefile
+
+commit e6358187d26fbc6a1e4cd438f7142e4f5e15a0d0
+Author: Paul Kallarackel <108292404+krackalackel02@users.noreply.github.com>
+Date:   Fri Mar 22 13:37:40 2024 +0000
+
+    update dlog
+
+M	repository.log
+
+commit 63030dc95f41ce50f5ebc9c441b908db248754e3
+Author: Paul Kallarackel <paulkallarackel@gmail.com>
+Date:   Fri Mar 22 13:27:58 2024 +0000
+
+    edited readme
+
+M	README.md
+
 commit 29e7bd34de3dc18feba7afcc127b2a12beed9354
 Author: Paul Kallarackel <108292404+krackalackel02@users.noreply.github.com>
 Date:   Fri Mar 22 12:58:02 2024 +0000
