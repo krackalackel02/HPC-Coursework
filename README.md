@@ -259,7 +259,7 @@ _You can view the document below:_
 - [x] Setup project structure 
 - [x] Initialise .gitignore file
 - [x] Initialise Markdown
-- [ ] Assignment Tasks
+- [x] Assignment Tasks
     - [x]  Task 1.
         - [x]  Setup Git repo
         - [x]  Setup git log file to report previous commits
@@ -270,14 +270,14 @@ _You can view the document below:_
         - [x]  Add Doxyfile
         - [x]  Document all of source code
         - [x]  Compile with "doc" Makefile target
-    - [ ]  Task 4.
+    - [x]  Task 4.
         - [x]  Write Unit Tests
           - [x]  At least one test for Linear CG Solver Class
           - [x]  At least one test for lid-driven cavity class
         - [x]  Add relevent documentation within test files
         - [x]  **Report:** Provide brief description 
         - [x]  Compile with "unittests" Makefile target
-    - [ ]  Task 5.
+    - [x]  Task 5.
         - [x]  Implement MPI
           - [x]  Extend the code to execute in parallel using P = p<sup>2</sup> MPI ranks for integer p > 0.
             - [x]  Implement distribution of grid into ranks for cart grid
@@ -292,19 +292,19 @@ _You can view the document below:_
           - [x]  **Report:** Concisely summarise your approach to parallelising the code with MPI and the changes you needed to make to convert the code to run in parallel.
           - [x]  **Report:** How did you try to ensure the work done by each process was as balanced as possible?
           - [x]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why? 
-    - [ ]  Task 6.
+    - [x]  Task 6.
         - [x]  Implement OpenMP
           - [x]  Add multi-threading to the code using OpenMP
           - [x]  The number of threads used by each process should respect the value of the OMP NUM THREADS environmental variable.
           - [x]  **Report:** Provide a scaling plot showing the speed-up of your code when run in parallel, relative to the case in serial, using up to 16 threads.
           - [x]  **Report:** Concisely summarise your approach to parallelising the code with OpenMP.
           - [x]  **Report:** Discuss the scaling plot and whether you consider it shows good scaling and, if not, why?
-    - [ ]  Task 7.
-        - [ ]  Optimise your code using a profiler.
+    - [x]  Task 7.
+        - [x]  Optimise your code using a profiler.
           - [x]  Use one MPI process and one OpenMP thread for this part.
           - [x]  **Report:** Describe, with quantitative evidence, the most time-consuming parts of your code. 
           - [x]  **Report:** List optimisations you have made to the code to improve performance, and quantify the change observed.
-    - [ ]  Task 8.
+    - [x]  Task 8.
         - [x]  Use good coding practices (code layout, comments, etc) throughout your code.
 
 See the [open issues](https://github.com/krackalackel02/HPC-Coursework/issues) for a full list of proposed features (and known issues).
