@@ -377,7 +377,7 @@ Use this space to list resources you find helpful and would like to give credit 
 
 
 [report badge]: ./images/report.png
-[report url]: https://github.com/krackalackel02/HPC-Coursework/blob/main/report/Report.pdf
+[report url]: https://github.com/krackalackel02/HPC-Coursework/blob/gh-pages/Report.pdf
 [cpp badge]: https://img.shields.io/badge/C%2B%2B-white?style=for-the-badge&logo=cplusplus&color=%23084a86&link=https%3A%2F%2Fen.cppreference.com%2Fw%2F
 [cpp url]: http://cppreference.com/
 [makefile url]: https://www.gnu.org/software/make/
